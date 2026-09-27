@@ -23,18 +23,23 @@ jobs:
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
+      - name: Build RG Amp SIM
+        run: |
+          cmake --build build --parallel
+
       # ==========================================================
-      # TEMPORARY DEBUG - FIND BinaryData FILES
+      # TEMPORARY DEBUG - RG AMP SIM BINARY DATA
       # ==========================================================
-      - name: DEBUG BinaryData Files
+      - name: DEBUG RG Amp SIM BinaryData
         shell: pwsh
         run: |
-          Write-Host "=========================================="
-          Write-Host "RG AMP SIM - BinaryData DEBUG"
-          Write-Host "=========================================="
-
           Write-Host ""
-          Write-Host "Searching for BinaryData files..."
+          Write-Host "=================================================="
+          Write-Host "RG AMP SIM - GENERATED BINARY DATA"
+          Write-Host "=================================================="
+          Write-Host ""
+
+          Write-Host "Searching build directory..."
           Write-Host ""
 
           $files = Get-ChildItem `
@@ -43,74 +48,93 @@ jobs:
             -File `
             -ErrorAction SilentlyContinue |
             Where-Object {
+              $_.FullName -match "AmpSimAssets" -or
               $_.Name -eq "BinaryData.h" -or
               $_.Name -eq "BinaryData.cpp"
             }
 
           if ($files) {
             foreach ($file in $files) {
-              Write-Host "FOUND:"
               Write-Host $file.FullName
-              Write-Host ""
             }
           }
           else {
-            Write-Host "BinaryData.h / BinaryData.cpp not found yet."
+            Write-Host "No matching BinaryData files found."
           }
 
           Write-Host ""
-          Write-Host "=========================================="
+          Write-Host "=================================================="
+          Write-Host "SEARCHING FOR RG ASSET FILES"
+          Write-Host "=================================================="
+          Write-Host ""
 
-      - name: Build RG Amp SIM
-        run: |
-          cmake --build build --parallel
+          $assets = Get-ChildItem `
+            -Path build `
+            -Recurse `
+            -File `
+            -ErrorAction SilentlyContinue |
+            Where-Object {
+              $_.Name -match "MBDR" -or
+              $_.Name -match "precision" -or
+              $_.Name -match "412" -or
+              $_.Name -match "mic" -or
+              $_.Name -match "rg100"
+            }
 
-      # ==========================================================
-      # TEMPORARY DEBUG - PRINT GENERATED BinaryData.h
-      # ==========================================================
-      - name: DEBUG BinaryData Header
-        shell: pwsh
-        run: |
-          Write-Host "=========================================="
-          Write-Host "RG AMP SIM - GENERATED BinaryData.h"
-          Write-Host "=========================================="
+          if ($assets) {
+            foreach ($asset in $assets) {
+              Write-Host $asset.FullName
+            }
+          }
+          else {
+            Write-Host "No matching RG asset files found."
+          }
 
-          $header = Get-ChildItem `
+          Write-Host ""
+          Write-Host "=================================================="
+          Write-Host "SEARCHING GENERATED HEADERS FOR RG ASSET NAMES"
+          Write-Host "=================================================="
+          Write-Host ""
+
+          $headers = Get-ChildItem `
             -Path build `
             -Recurse `
             -Filter "BinaryData.h" `
             -File `
-            -ErrorAction SilentlyContinue |
-            Select-Object -First 1
+            -ErrorAction SilentlyContinue
 
-          if ($header) {
-            Write-Host ""
-            Write-Host "FOUND:"
-            Write-Host $header.FullName
-            Write-Host ""
-            Write-Host "Searching for NAM / IR / JPG resource names..."
-            Write-Host ""
+          if ($headers) {
 
-            Get-Content $header.FullName |
-              Select-String -Pattern `
-                "NAM",
-                "MBDR",
-                "precision",
-                "412",
-                "mic",
-                "wav",
-                "jpg",
-                "rg100"
+            foreach ($header in $headers) {
 
-            Write-Host ""
-            Write-Host "=========================================="
-            Write-Host "END BinaryData DEBUG"
-            Write-Host "=========================================="
+              Write-Host ""
+              Write-Host "HEADER:"
+              Write-Host $header.FullName
+              Write-Host "------------------------------------------"
+
+              $matches = Get-Content $header.FullName |
+                Select-String -Pattern `
+                  "MBDR",
+                  "precision",
+                  "412",
+                  "mic",
+                  "rg100"
+
+              if ($matches) {
+                foreach ($match in $matches) {
+                  Write-Host $match.Line
+                }
+              }
+            }
           }
           else {
-            Write-Host "BinaryData.h was not found."
-            Write-Host "=========================================="
+            Write-Host "No BinaryData.h found."
           }
+
+          Write-Host ""
+          Write-Host "=================================================="
+          Write-Host "END RG AMP SIM DEBUG"
+          Write-Host "=================================================="
 
       - name: Find VST3
         shell: pwsh
