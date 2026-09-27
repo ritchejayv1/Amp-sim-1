@@ -77,8 +77,8 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
 
     setupKnob(
         volumeKnob,
-        -24.0,
-        12.0,
+        0.0,
+        24.0,
         0.01);
 
     //==============================================================
