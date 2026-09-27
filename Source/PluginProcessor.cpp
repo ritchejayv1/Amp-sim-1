@@ -1,5 +1,8 @@
 #include "PluginProcessor.h"
+#include "PluginEditor.h"
+#include "BinaryData.h"
 
+#include <algorithm>
 #include <cmath>
 
 //==============================================================================
@@ -110,11 +113,10 @@ void AmpSimAudioProcessor::prepareToPlay(
     double sampleRate,
     int samplesPerBlock)
 {
+    currentSampleRate = sampleRate;
+
     //==========================================================================
     // PURE MONO WORKING SIGNAL
-    //
-    // Everything inside the amp is processed as ONE channel.
-    // The final mono signal is duplicated identically to L/R.
     //==========================================================================
 
     monoBuffer.setSize(
@@ -131,7 +133,7 @@ void AmpSimAudioProcessor::prepareToPlay(
         static_cast<size_t>(samplesPerBlock));
 
     //==========================================================================
-    // INPUT / OUTPUT GAIN
+    // MONO DSP SPEC
     //==========================================================================
 
     juce::dsp::ProcessSpec monoSpec;
@@ -139,6 +141,10 @@ void AmpSimAudioProcessor::prepareToPlay(
     monoSpec.maximumBlockSize =
         static_cast<juce::uint32>(samplesPerBlock);
     monoSpec.numChannels = 1;
+
+    //==========================================================================
+    // INPUT / OUTPUT GAIN
+    //==========================================================================
 
     inputGain.prepare(monoSpec);
     inputGain.reset();
@@ -161,9 +167,6 @@ void AmpSimAudioProcessor::prepareToPlay(
 
     //==========================================================================
     // MONO 4x12 CAB IR
-    //
-    // IMPORTANT:
-    // Convolution is explicitly prepared as ONE channel.
     //==========================================================================
 
     irConvolution.prepare(monoSpec);
@@ -216,11 +219,6 @@ bool AmpSimAudioProcessor::isBusesLayoutSupported(
             false,
             0);
 
-    // Accept mono or stereo plugin I/O.
-    //
-    // Internally everything is converted to mono.
-    // The final mono signal is copied to every output channel.
-
     if (inputLayout != juce::AudioChannelSet::mono()
         && inputLayout != juce::AudioChannelSet::stereo())
     {
@@ -250,7 +248,7 @@ void AmpSimAudioProcessor::processBlock(
         return;
 
     //==========================================================================
-    // SAFETY: MAKE SURE MONO BUFFER IS LARGE ENOUGH
+    // MAKE SURE MONO BUFFER IS LARGE ENOUGH
     //==========================================================================
 
     if (monoBuffer.getNumSamples() < numSamples)
@@ -263,14 +261,11 @@ void AmpSimAudioProcessor::processBlock(
             true);
     }
 
-    auto* monoData =
+    float* monoData =
         monoBuffer.getWritePointer(0);
 
     //==========================================================================
     // 1. STEREO INPUT -> PURE MONO
-    //
-    // L/R are averaged.
-    // There is no stereo information after this point.
     //==========================================================================
 
     const int inputChannels =
@@ -309,7 +304,6 @@ void AmpSimAudioProcessor::processBlock(
     //==========================================================================
     // 2. INPUT GAIN
     //
-    // GAIN knob:
     // 0  = -12 dB
     // 10 = +12 dB
     //==========================================================================
@@ -341,8 +335,6 @@ void AmpSimAudioProcessor::processBlock(
 
     //==========================================================================
     // 3. NAM AMP SIMULATION
-    //
-    // NAM receives ONE mono signal and returns ONE mono signal.
     //==========================================================================
 
     if (namLoaded && namModel != nullptr)
@@ -377,7 +369,7 @@ void AmpSimAudioProcessor::processBlock(
     }
 
     //==========================================================================
-    // 4. MONO BASS
+    // 4. BASS
     // 120 Hz LOW SHELF
     //==========================================================================
 
@@ -388,7 +380,7 @@ void AmpSimAudioProcessor::processBlock(
 
     *bassFilter.coefficients =
         *juce::dsp::IIR::Coefficients<float>::makeLowShelf(
-            48000.0,
+            currentSampleRate,
             120.0,
             0.7071f,
             juce::Decibels::decibelsToGain(
@@ -405,7 +397,7 @@ void AmpSimAudioProcessor::processBlock(
     }
 
     //==========================================================================
-    // 5. MONO MID
+    // 5. MID
     // 750 Hz PEAK
     //==========================================================================
 
@@ -416,7 +408,7 @@ void AmpSimAudioProcessor::processBlock(
 
     *midFilter.coefficients =
         *juce::dsp::IIR::Coefficients<float>::makePeakFilter(
-            48000.0,
+            currentSampleRate,
             750.0,
             0.8f,
             juce::Decibels::decibelsToGain(
@@ -433,7 +425,7 @@ void AmpSimAudioProcessor::processBlock(
     }
 
     //==========================================================================
-    // 6. MONO HI
+    // 6. HI
     // 4500 Hz HIGH SHELF
     //==========================================================================
 
@@ -444,7 +436,7 @@ void AmpSimAudioProcessor::processBlock(
 
     *highFilter.coefficients =
         *juce::dsp::IIR::Coefficients<float>::makeHighShelf(
-            48000.0,
+            currentSampleRate,
             4500.0,
             0.7071f,
             juce::Decibels::decibelsToGain(
@@ -461,10 +453,8 @@ void AmpSimAudioProcessor::processBlock(
     }
 
     //==========================================================================
-    // 7. MONO 4x12 CAB IR
-    //
-    // ONE CHANNEL ONLY.
-    // No stereo convolution.
+    // 7. 4x12 CAB IR
+    // PURE MONO
     //==========================================================================
 
     if (irLoaded)
@@ -502,13 +492,6 @@ void AmpSimAudioProcessor::processBlock(
 
     //==========================================================================
     // 9. MONO -> IDENTICAL L/R
-    //
-    // This is the final output stage.
-    //
-    // LEFT  = monoData
-    // RIGHT = exact same monoData
-    //
-    // No stereo processing remains.
     //==========================================================================
 
     for (int channel = 0;
@@ -588,12 +571,14 @@ bool AmpSimAudioProcessor::loadNAM()
         return false;
 
     if (namLoader == nullptr)
+    {
         namLoader =
             std::make_unique<
                 NeuralAudio::NeuralModelLoader>();
+    }
 
-    // The NAM model is loaded at 48 kHz.
-    namLoader->SetExternalSampleRate(48000);
+    namLoader->SetExternalSampleRate(
+        static_cast<int>(currentSampleRate));
 
     namModel.reset(
         namLoader->CreateFromFile(
@@ -619,12 +604,6 @@ bool AmpSimAudioProcessor::loadIR()
 
     if (!createEmbeddedIRFile())
         return false;
-
-    //==========================================================================
-    // IMPORTANT:
-    // The convolution has already been prepared as MONO in prepareToPlay().
-    // Stereo::no tells JUCE that this is a mono impulse response.
-    //==========================================================================
 
     irConvolution.reset();
 
