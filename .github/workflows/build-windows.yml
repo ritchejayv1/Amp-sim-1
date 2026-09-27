@@ -1,0 +1,68 @@
+name: Build RG Amp SIM Windows VST3
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build RG Amp SIM
+        run: |
+          cmake --build build --config Release --target AmpSim_VST3 --parallel
+
+      - name: Find VST3
+        shell: pwsh
+        run: |
+          Write-Host "Searching for VST3..."
+          Get-ChildItem -Path build -Recurse -Filter "*.vst3" |
+            ForEach-Object {
+              Write-Host $_.FullName
+            }
+
+      - name: Package VST3
+        shell: pwsh
+        run: |
+          $vst3 = Get-ChildItem `
+            -Path build `
+            -Recurse `
+            -Filter "RG Amp SIM.vst3" |
+            Select-Object -First 1
+
+          if (-not $vst3) {
+            Write-Error "RG Amp SIM.vst3 was not found."
+            exit 1
+          }
+
+          New-Item -ItemType Directory -Force -Path package | Out-Null
+
+          Copy-Item `
+            -Path $vst3.FullName `
+            -Destination "package/RG Amp SIM.vst3" `
+            -Recurse
+
+      - name: Create ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path "package/RG Amp SIM.vst3" `
+            -DestinationPath "RG-Amp-SIM-Windows-VST3.zip" `
+            -Force
+
+      - name: Upload VST3 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RG-Amp-SIM-Windows-VST3
+          path: RG-Amp-SIM-Windows-VST3.zip
+          if-no-files-found: error
