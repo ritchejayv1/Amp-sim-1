@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-# ==============================================================
+#==============================================================
 # JUCE
-# ==============================================================
+#==============================================================
 
 FetchContent_Declare(
     JUCE
@@ -19,9 +19,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(JUCE)
 
-# ==============================================================
+#==============================================================
 # NeuralAudio
-# ==============================================================
+#==============================================================
 
 FetchContent_Declare(
     NeuralAudio
@@ -31,9 +31,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(NeuralAudio)
 
-# ==============================================================
-# Embedded Assets
-# ==============================================================
+#==============================================================
+# Binary Assets
+#==============================================================
 
 juce_add_binary_data(
     AmpSimAssets
@@ -43,85 +43,84 @@ juce_add_binary_data(
         "Assets/rg100.jpg"
 )
 
-# ==============================================================
+#==============================================================
 # Plugin
-# ==============================================================
+#==============================================================
 
 juce_add_plugin(
     AmpSim
-
     COMPANY_NAME "RG Audio"
-
     BUNDLE_ID com.rgaudio.ampsim
-
     PLUGIN_MANUFACTURER_CODE RGAu
     PLUGIN_CODE Amp1
-
     FORMATS VST3
-
     PRODUCT_NAME "RG Amp SIM"
-
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
-
     COPY_PLUGIN_AFTER_BUILD TRUE
 )
 
-# ==============================================================
-# Source Files
-# ==============================================================
+#==============================================================
+# Source
+#==============================================================
 
 target_sources(
     AmpSim
     PRIVATE
-
         Source/PluginProcessor.cpp
         Source/PluginProcessor.h
-
         Source/PluginEditor.cpp
         Source/PluginEditor.h
 )
 
-# ==============================================================
+#==============================================================
+# NeuralAudio include directories
+#==============================================================
+
+target_include_directories(
+    AmpSim
+    PRIVATE
+        ${neuralaudio_SOURCE_DIR}
+        ${neuralaudio_SOURCE_DIR}/NeuralAudio
+        ${neuralaudio_SOURCE_DIR}/include
+)
+
+#==============================================================
 # Libraries
-# ==============================================================
+#==============================================================
 
 target_link_libraries(
     AmpSim
     PRIVATE
-
         AmpSimAssets
         NeuralAudio
-
         juce::juce_audio_utils
         juce::juce_dsp
         juce::juce_gui_extra
 
     PUBLIC
-
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
 )
 
-# ==============================================================
-# JUCE Configuration
-# ==============================================================
+#==============================================================
+# Definitions
+#==============================================================
 
 target_compile_definitions(
     AmpSim
     PRIVATE
-
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
 )
 
-# ==============================================================
+#==============================================================
 # Folder
-# ==============================================================
+#==============================================================
 
 set_target_properties(
     AmpSim
