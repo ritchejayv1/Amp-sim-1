@@ -1,4 +1,4 @@
-#include "PluginProcessor.h"
+5#include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "BinaryData.h"
 
@@ -100,8 +100,8 @@ AmpSimAudioProcessor::createParameterLayout()
             "VOLUME",
             "Volume",
             juce::NormalisableRange<float>(
-                -24.0f,
-                12.0f,
+                0.0f,
+                24.0f,
                 0.01f),
             0.0f));
 
