@@ -23,9 +23,94 @@ jobs:
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
+      # ==========================================================
+      # TEMPORARY DEBUG - FIND BinaryData FILES
+      # ==========================================================
+      - name: DEBUG BinaryData Files
+        shell: pwsh
+        run: |
+          Write-Host "=========================================="
+          Write-Host "RG AMP SIM - BinaryData DEBUG"
+          Write-Host "=========================================="
+
+          Write-Host ""
+          Write-Host "Searching for BinaryData files..."
+          Write-Host ""
+
+          $files = Get-ChildItem `
+            -Path build `
+            -Recurse `
+            -File `
+            -ErrorAction SilentlyContinue |
+            Where-Object {
+              $_.Name -eq "BinaryData.h" -or
+              $_.Name -eq "BinaryData.cpp"
+            }
+
+          if ($files) {
+            foreach ($file in $files) {
+              Write-Host "FOUND:"
+              Write-Host $file.FullName
+              Write-Host ""
+            }
+          }
+          else {
+            Write-Host "BinaryData.h / BinaryData.cpp not found yet."
+          }
+
+          Write-Host ""
+          Write-Host "=========================================="
+
       - name: Build RG Amp SIM
         run: |
           cmake --build build --parallel
+
+      # ==========================================================
+      # TEMPORARY DEBUG - PRINT GENERATED BinaryData.h
+      # ==========================================================
+      - name: DEBUG BinaryData Header
+        shell: pwsh
+        run: |
+          Write-Host "=========================================="
+          Write-Host "RG AMP SIM - GENERATED BinaryData.h"
+          Write-Host "=========================================="
+
+          $header = Get-ChildItem `
+            -Path build `
+            -Recurse `
+            -Filter "BinaryData.h" `
+            -File `
+            -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+
+          if ($header) {
+            Write-Host ""
+            Write-Host "FOUND:"
+            Write-Host $header.FullName
+            Write-Host ""
+            Write-Host "Searching for NAM / IR / JPG resource names..."
+            Write-Host ""
+
+            Get-Content $header.FullName |
+              Select-String -Pattern `
+                "NAM",
+                "MBDR",
+                "precision",
+                "412",
+                "mic",
+                "wav",
+                "jpg",
+                "rg100"
+
+            Write-Host ""
+            Write-Host "=========================================="
+            Write-Host "END BinaryData DEBUG"
+            Write-Host "=========================================="
+          }
+          else {
+            Write-Host "BinaryData.h was not found."
+            Write-Host "=========================================="
+          }
 
       - name: Find VST3
         shell: pwsh
