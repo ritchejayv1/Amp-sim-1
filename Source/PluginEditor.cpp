@@ -12,17 +12,18 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
       audioProcessor(p)
 {
     //==============================================================
-    // Background image
+    // RG100 BACKGROUND IMAGE
     //==============================================================
 
     int imageSize = 0;
 
     const void* imageData =
         BinaryData::getNamedResource(
-            "rg100jpg",
+            "rg100_jpg",
             imageSize);
 
-    if (imageData != nullptr && imageSize > 0)
+    if (imageData != nullptr &&
+        imageSize > 0)
     {
         backgroundImage =
             juce::ImageCache::getFromMemory(
@@ -31,7 +32,7 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
     }
 
     //==============================================================
-    // Knobs
+    // GAIN
     //==============================================================
 
     setupKnob(
@@ -40,11 +41,19 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
         10.0,
         0.01);
 
+    //==============================================================
+    // BASS
+    //==============================================================
+
     setupKnob(
         bassKnob,
         -12.0,
         12.0,
         0.01);
+
+    //==============================================================
+    // MID
+    //==============================================================
 
     setupKnob(
         midKnob,
@@ -52,11 +61,19 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
         12.0,
         0.01);
 
+    //==============================================================
+    // HI
+    //==============================================================
+
     setupKnob(
         hiKnob,
         -12.0,
         12.0,
         0.01);
+
+    //==============================================================
+    // VOLUME
+    //==============================================================
 
     setupKnob(
         volumeKnob,
@@ -65,7 +82,7 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
         0.01);
 
     //==============================================================
-    // Labels
+    // LABELS
     //==============================================================
 
     setupLabel(
@@ -89,56 +106,70 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
         "VOLUME");
 
     //==============================================================
-    // Parameter Attachments
+    // PARAMETER ATTACHMENTS
     //==============================================================
 
     gainAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::SliderAttachment>(
-                audioProcessor.parameters,
-                "GAIN",
-                gainKnob);
+            juce::AudioProcessorValueTreeState::
+                SliderAttachment>(
+                    audioProcessor.parameters,
+                    "GAIN",
+                    gainKnob);
 
     bassAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::SliderAttachment>(
-                audioProcessor.parameters,
-                "BASS",
-                bassKnob);
+            juce::AudioProcessorValueTreeState::
+                SliderAttachment>(
+                    audioProcessor.parameters,
+                    "BASS",
+                    bassKnob);
 
     midAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::SliderAttachment>(
-                audioProcessor.parameters,
-                "MID",
-                midKnob);
+            juce::AudioProcessorValueTreeState::
+                SliderAttachment>(
+                    audioProcessor.parameters,
+                    "MID",
+                    midKnob);
 
     hiAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::SliderAttachment>(
-                audioProcessor.parameters,
-                "HI",
-                hiKnob);
+            juce::AudioProcessorValueTreeState::
+                SliderAttachment>(
+                    audioProcessor.parameters,
+                    "HI",
+                    hiKnob);
 
     volumeAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::SliderAttachment>(
-                audioProcessor.parameters,
-                "VOLUME",
-                volumeKnob);
+            juce::AudioProcessorValueTreeState::
+                SliderAttachment>(
+                    audioProcessor.parameters,
+                    "VOLUME",
+                    volumeKnob);
 
     //==============================================================
-    // Look and Feel
+    // KNOB LOOK AND FEEL
     //==============================================================
 
-    gainKnob.setLookAndFeel(&knobLookAndFeel);
-    bassKnob.setLookAndFeel(&knobLookAndFeel);
-    midKnob.setLookAndFeel(&knobLookAndFeel);
-    hiKnob.setLookAndFeel(&knobLookAndFeel);
-    volumeKnob.setLookAndFeel(&knobLookAndFeel);
+    gainKnob.setLookAndFeel(
+        &knobLookAndFeel);
+
+    bassKnob.setLookAndFeel(
+        &knobLookAndFeel);
+
+    midKnob.setLookAndFeel(
+        &knobLookAndFeel);
+
+    hiKnob.setLookAndFeel(
+        &knobLookAndFeel);
+
+    volumeKnob.setLookAndFeel(
+        &knobLookAndFeel);
 
     //==============================================================
-    // Editor Size
+    // EDITOR SIZE
     //==============================================================
 
     setSize(
@@ -192,7 +223,8 @@ void AmpSimAudioProcessorEditor::setupKnob(
         true,
         this);
 
-    addAndMakeVisible(slider);
+    addAndMakeVisible(
+        slider);
 }
 
 //==============================================================================
@@ -219,7 +251,8 @@ void AmpSimAudioProcessorEditor::setupLabel(
             13.0f,
             juce::Font::bold));
 
-    addAndMakeVisible(label);
+    addAndMakeVisible(
+        label);
 }
 
 //==============================================================================
@@ -230,7 +263,7 @@ void AmpSimAudioProcessorEditor::paint(
     juce::Graphics& g)
 {
     //==============================================================
-    // Background
+    // RG100 IMAGE
     //==============================================================
 
     if (backgroundImage.isValid())
@@ -242,6 +275,10 @@ void AmpSimAudioProcessorEditor::paint(
     }
     else
     {
+        //==========================================================
+        // Fallback
+        //==========================================================
+
         g.fillAll(
             juce::Colour(
                 20,
@@ -257,9 +294,9 @@ void AmpSimAudioProcessorEditor::paint(
 void AmpSimAudioProcessorEditor::resized()
 {
     //==============================================================
-    // Reference layout:
+    // ORIGINAL REFERENCE
     //
-    // Window: 800 x 500
+    // 800 x 500
     //
     // GAIN    184,330
     // BASS    292,330
@@ -270,21 +307,31 @@ void AmpSimAudioProcessorEditor::resized()
     //==============================================================
 
     const float scaleX =
-        static_cast<float>(getWidth()) /
-        800.0f;
+        static_cast<float>(
+            getWidth())
+        / 800.0f;
 
     const float scaleY =
-        static_cast<float>(getHeight()) /
-        500.0f;
+        static_cast<float>(
+            getHeight())
+        / 500.0f;
 
     const float scale =
         juce::jmin(
             scaleX,
             scaleY);
 
+    //==============================================================
+    // KNOB SIZE
+    //==============================================================
+
     const int knobSize =
         static_cast<int>(
             76.0f * scale);
+
+    //==============================================================
+    // KNOB POSITION
+    //==============================================================
 
     auto setKnobPosition =
         [scale, knobSize](
@@ -310,7 +357,7 @@ void AmpSimAudioProcessorEditor::resized()
         };
 
     //==============================================================
-    // Knobs
+    // GAIN
     //==============================================================
 
     setKnobPosition(
@@ -318,20 +365,36 @@ void AmpSimAudioProcessorEditor::resized()
         184.0f,
         330.0f);
 
+    //==============================================================
+    // BASS
+    //==============================================================
+
     setKnobPosition(
         bassKnob,
         292.0f,
         330.0f);
+
+    //==============================================================
+    // MID
+    //==============================================================
 
     setKnobPosition(
         midKnob,
         400.0f,
         330.0f);
 
+    //==============================================================
+    // HI
+    //==============================================================
+
     setKnobPosition(
         hiKnob,
         508.0f,
         330.0f);
+
+    //==============================================================
+    // VOLUME
+    //==============================================================
 
     setKnobPosition(
         volumeKnob,
@@ -339,7 +402,7 @@ void AmpSimAudioProcessorEditor::resized()
         330.0f);
 
     //==============================================================
-    // Labels
+    // LABEL SIZE
     //==============================================================
 
     const int labelWidth =
@@ -353,6 +416,10 @@ void AmpSimAudioProcessorEditor::resized()
     const int labelY =
         static_cast<int>(
             374.0f * scale);
+
+    //==============================================================
+    // LABEL POSITION
+    //==============================================================
 
     auto setLabelPosition =
         [scale,
@@ -373,6 +440,10 @@ void AmpSimAudioProcessorEditor::resized()
                 labelWidth,
                 labelHeight);
         };
+
+    //==============================================================
+    // LABELS
+    //==============================================================
 
     setLabelPosition(
         gainLabel,
@@ -410,28 +481,45 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
     float rotaryEndAngle,
     juce::Slider&)
 {
+    //==============================================================
+    // Radius
+    //==============================================================
+
     const float radius =
         juce::jmin(
-            static_cast<float>(width),
-            static_cast<float>(height))
+            static_cast<float>(
+                width),
+            static_cast<float>(
+                height))
         * 0.5f
         - 5.0f;
 
+    //==============================================================
+    // Center
+    //==============================================================
+
     const float centreX =
         static_cast<float>(x)
-        + static_cast<float>(width) * 0.5f;
+        + static_cast<float>(width)
+          * 0.5f;
 
     const float centreY =
         static_cast<float>(y)
-        + static_cast<float>(height) * 0.5f;
+        + static_cast<float>(height)
+          * 0.5f;
+
+    //==============================================================
+    // Pointer angle
+    //==============================================================
 
     const float angle =
         rotaryStartAngle
-        + sliderPosProportional *
-          (rotaryEndAngle - rotaryStartAngle);
+        + sliderPosProportional
+          * (rotaryEndAngle -
+             rotaryStartAngle);
 
     //==============================================================
-    // Outer knob
+    // OUTER KNOB
     //==============================================================
 
     g.setColour(
@@ -447,7 +535,7 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
         radius * 2.0f);
 
     //==============================================================
-    // Outer ring
+    // OUTER RING
     //==============================================================
 
     g.setColour(
@@ -464,7 +552,7 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
         2.0f);
 
     //==============================================================
-    // Pointer
+    // POINTER
     //==============================================================
 
     const float pointerLength =
@@ -495,7 +583,7 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
                 centreY));
 
     //==============================================================
-    // Center
+    // CENTER
     //==============================================================
 
     const float centerRadius =
