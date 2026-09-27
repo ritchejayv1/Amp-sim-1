@@ -73,7 +73,6 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
 
     //==============================================================
     // VOLUME
-    // ACTUAL PARAMETER = 0 TO 100
     //==============================================================
 
     setupKnob(
@@ -85,15 +84,7 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
     //==============================================================
     // VOLUME POPUP DISPLAY
     //
-    // Actual parameter:
-    //     0   = mute
-    //     50  = 50%
-    //     100 = full volume
-    //
-    // Display:
-    //     0   -> 0.0
-    //     50  -> 5.0
-    //     100 -> 10.0
+    // Display remains 0.0 - 10.0
     //==============================================================
 
     volumeKnob.textFromValueFunction =
@@ -107,6 +98,10 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
     //==============================================================
     // LABELS
     //==============================================================
+
+    setupLabel(
+        inputLabel,
+        "INPUT");
 
     setupLabel(
         gainLabel,
@@ -289,6 +284,10 @@ void AmpSimAudioProcessorEditor::setupLabel(
 void AmpSimAudioProcessorEditor::paint(
     juce::Graphics& g)
 {
+    //==============================================================
+    // BACKGROUND
+    //==============================================================
+
     if (backgroundImage.isValid())
     {
         g.drawImage(
@@ -304,6 +303,104 @@ void AmpSimAudioProcessorEditor::paint(
                 20,
                 20));
     }
+
+    //==============================================================
+    // SCALE
+    //==============================================================
+
+    const float scaleX =
+        static_cast<float>(
+            getWidth())
+        / 800.0f;
+
+    const float scaleY =
+        static_cast<float>(
+            getHeight())
+        / 500.0f;
+
+    const float scale =
+        juce::jmin(
+            scaleX,
+            scaleY);
+
+    //==============================================================
+    // INPUT JACK SOCKET
+    //
+    // INPUT = X 130
+    // GAIN  = X 200
+    //
+    // Same horizontal row.
+    //==============================================================
+
+    const float jackCentreX =
+        130.0f * scale;
+
+    const float jackCentreY =
+        330.0f * scale;
+
+    const float jackRadius =
+        14.0f * scale;
+
+    //==============================================================
+    // OUTER METAL RING
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            125,
+            125,
+            125));
+
+    g.fillEllipse(
+        jackCentreX - jackRadius,
+        jackCentreY - jackRadius,
+        jackRadius * 2.0f,
+        jackRadius * 2.0f);
+
+    //==============================================================
+    // DARK INNER RING
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            45,
+            45,
+            45));
+
+    g.fillEllipse(
+        jackCentreX - jackRadius + 3.0f * scale,
+        jackCentreY - jackRadius + 3.0f * scale,
+        jackRadius * 2.0f - 6.0f * scale,
+        jackRadius * 2.0f - 6.0f * scale);
+
+    //==============================================================
+    // CENTER HOLE
+    //==============================================================
+
+    g.setColour(
+        juce::Colours::black);
+
+    g.fillEllipse(
+        jackCentreX - 5.0f * scale,
+        jackCentreY - 5.0f * scale,
+        10.0f * scale,
+        10.0f * scale);
+
+    //==============================================================
+    // METALLIC HIGHLIGHT
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            200,
+            200,
+            200));
+
+    g.fillEllipse(
+        jackCentreX - 7.0f * scale,
+        jackCentreY - 9.0f * scale,
+        4.0f * scale,
+        4.0f * scale);
 }
 
 //==============================================================================
@@ -315,17 +412,18 @@ void AmpSimAudioProcessorEditor::resized()
     //==============================================================
     // 800 x 500 REFERENCE
     //
-    // KNOB SIZE = 45 px
-    // GAP       = 25 px
-    // CENTER    = 70 px
+    // FINAL HORIZONTAL LAYOUT
     //
-    // GAIN      200
-    // BASS      270
-    // MID       340
-    // HI        410
-    // VOLUME    480
+    // INPUT     = 130
+    // GAIN      = 200
+    // BASS      = 270
+    // MID       = 340
+    // HI        = 410
+    // VOLUME    = 480
     //
-    // Y = 330
+    // ALL Y = 330
+    //
+    // Existing knob positions are NOT changed.
     //==============================================================
 
     const float scaleX =
@@ -379,7 +477,8 @@ void AmpSimAudioProcessorEditor::resized()
         };
 
     //==============================================================
-    // 25 PX GAP
+    // EXISTING KNOBS
+    // DO NOT CHANGE
     //==============================================================
 
     setKnobPosition(
@@ -409,8 +508,6 @@ void AmpSimAudioProcessorEditor::resized()
 
     //==============================================================
     // LABEL SIZE
-    //
-    // Proportional to the new 70 px center spacing.
     //==============================================================
 
     const int labelWidth =
@@ -422,7 +519,7 @@ void AmpSimAudioProcessorEditor::resized()
             16.0f * scale);
 
     //==============================================================
-    // LABEL POSITION
+    // LABEL Y
     //==============================================================
 
     const int labelY =
@@ -450,7 +547,15 @@ void AmpSimAudioProcessorEditor::resized()
         };
 
     //==============================================================
-    // LABELS FOLLOW KNOB CENTERS
+    // INPUT LABEL
+    //==============================================================
+
+    setLabelPosition(
+        inputLabel,
+        130.0f);
+
+    //==============================================================
+    // EXISTING LABELS
     //==============================================================
 
     setLabelPosition(
