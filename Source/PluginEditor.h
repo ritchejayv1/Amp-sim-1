@@ -51,6 +51,7 @@ private:
     // Labels
     //==============================================================
 
+    juce::Label inputLabel;
     juce::Label gainLabel;
     juce::Label bassLabel;
     juce::Label midLabel;
