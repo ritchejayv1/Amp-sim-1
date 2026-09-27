@@ -11,131 +11,93 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      # ==========================================================
+      # CHECKOUT
+      # ==========================================================
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ==========================================================
+      # MSVC
+      # ==========================================================
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
 
+      # ==========================================================
+      # CMAKE CONFIGURE
+      # ==========================================================
       - name: Configure CMake
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
+      # ==========================================================
+      # BUILD
+      # ==========================================================
       - name: Build RG Amp SIM
         run: |
           cmake --build build --parallel
 
       # ==========================================================
-      # TEMPORARY DEBUG - RG AMP SIM BINARY DATA
+      # DEBUG EXACT RG AMP SIM BINARYDATA
       # ==========================================================
       - name: DEBUG RG Amp SIM BinaryData
         shell: pwsh
         run: |
+          $header = "build/juce_binarydata_AmpSimAssets/JuceLibraryCode/BinaryData.h"
+
           Write-Host ""
           Write-Host "=================================================="
-          Write-Host "RG AMP SIM - GENERATED BINARY DATA"
+          Write-Host "RG AMP SIM - EXACT BinaryData.h"
           Write-Host "=================================================="
-          Write-Host ""
 
-          Write-Host "Searching build directory..."
-          Write-Host ""
+          if (Test-Path $header) {
 
-          $files = Get-ChildItem `
-            -Path build `
-            -Recurse `
-            -File `
-            -ErrorAction SilentlyContinue |
-            Where-Object {
-              $_.FullName -match "AmpSimAssets" -or
-              $_.Name -eq "BinaryData.h" -or
-              $_.Name -eq "BinaryData.cpp"
-            }
+            Write-Host ""
+            Write-Host "FOUND:"
+            Write-Host $header
+            Write-Host ""
 
-          if ($files) {
-            foreach ($file in $files) {
-              Write-Host $file.FullName
-            }
+            Write-Host "=================================================="
+            Write-Host "NAM / IR / JPG RESOURCE SYMBOLS"
+            Write-Host "=================================================="
+
+            Get-Content $header |
+              Select-String -Pattern `
+                "MBDR",
+                "precision",
+                "412",
+                "mic",
+                "rg100",
+                "nam",
+                "wav",
+                "jpg"
+
+            Write-Host ""
+            Write-Host "=================================================="
+            Write-Host "ALL RESOURCE DECLARATIONS"
+            Write-Host "=================================================="
+
+            Get-Content $header |
+              Select-String -Pattern `
+                "extern const char",
+                "extern const int"
+
           }
           else {
-            Write-Host "No matching BinaryData files found."
+            Write-Host "ERROR: RG Amp SIM BinaryData.h NOT FOUND"
+            exit 1
           }
 
           Write-Host ""
           Write-Host "=================================================="
-          Write-Host "SEARCHING FOR RG ASSET FILES"
-          Write-Host "=================================================="
-          Write-Host ""
-
-          $assets = Get-ChildItem `
-            -Path build `
-            -Recurse `
-            -File `
-            -ErrorAction SilentlyContinue |
-            Where-Object {
-              $_.Name -match "MBDR" -or
-              $_.Name -match "precision" -or
-              $_.Name -match "412" -or
-              $_.Name -match "mic" -or
-              $_.Name -match "rg100"
-            }
-
-          if ($assets) {
-            foreach ($asset in $assets) {
-              Write-Host $asset.FullName
-            }
-          }
-          else {
-            Write-Host "No matching RG asset files found."
-          }
-
-          Write-Host ""
-          Write-Host "=================================================="
-          Write-Host "SEARCHING GENERATED HEADERS FOR RG ASSET NAMES"
-          Write-Host "=================================================="
-          Write-Host ""
-
-          $headers = Get-ChildItem `
-            -Path build `
-            -Recurse `
-            -Filter "BinaryData.h" `
-            -File `
-            -ErrorAction SilentlyContinue
-
-          if ($headers) {
-
-            foreach ($header in $headers) {
-
-              Write-Host ""
-              Write-Host "HEADER:"
-              Write-Host $header.FullName
-              Write-Host "------------------------------------------"
-
-              $matches = Get-Content $header.FullName |
-                Select-String -Pattern `
-                  "MBDR",
-                  "precision",
-                  "412",
-                  "mic",
-                  "rg100"
-
-              if ($matches) {
-                foreach ($match in $matches) {
-                  Write-Host $match.Line
-                }
-              }
-            }
-          }
-          else {
-            Write-Host "No BinaryData.h found."
-          }
-
-          Write-Host ""
-          Write-Host "=================================================="
-          Write-Host "END RG AMP SIM DEBUG"
+          Write-Host "END DEBUG"
           Write-Host "=================================================="
 
+      # ==========================================================
+      # FIND VST3
+      # ==========================================================
       - name: Find VST3
         shell: pwsh
         run: |
@@ -149,6 +111,9 @@ jobs:
               Write-Host $_.FullName
             }
 
+      # ==========================================================
+      # PACKAGE VST3
+      # ==========================================================
       - name: Package VST3
         shell: pwsh
         run: |
@@ -173,6 +138,9 @@ jobs:
             -Destination "package/RG Amp SIM.vst3" `
             -Recurse
 
+      # ==========================================================
+      # CREATE ZIP
+      # ==========================================================
       - name: Create ZIP
         shell: pwsh
         run: |
@@ -181,6 +149,9 @@ jobs:
             -DestinationPath "RG-Amp-SIM-Windows-VST3.zip" `
             -Force
 
+      # ==========================================================
+      # UPLOAD ARTIFACT
+      # ==========================================================
       - name: Upload VST3 artifact
         uses: actions/upload-artifact@v4
         with:
