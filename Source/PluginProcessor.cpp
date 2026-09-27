@@ -263,7 +263,8 @@ bool AmpSimAudioProcessor::loadNAM()
     if (!namTempFile.existsAsFile())
         return false;
 
-    namLoader->SetDefaultMaxAudioBufferSize(2048);
+    namLoader->SetDefaultMaxAudioBufferSize(
+        2048);
 
     namModel.reset();
 
@@ -291,9 +292,6 @@ bool AmpSimAudioProcessor::loadNAM()
 
 bool AmpSimAudioProcessor::loadIR()
 {
-    if (!irTempFile.existsAsFile())
-        return false;
-
     if (!irTempFile.existsAsFile())
     {
         irLoaded = false;
@@ -363,7 +361,7 @@ void AmpSimAudioProcessor::prepareToPlay(
     highFilter.reset();
 
     //==============================================================
-    // IR
+    // IR / CABINET
     //==============================================================
 
     irConvolution.reset();
@@ -374,7 +372,14 @@ void AmpSimAudioProcessor::prepareToPlay(
             irTempFile,
             juce::dsp::Convolution::Stereo::yes,
             juce::dsp::Convolution::Trim::yes,
+            0,
             juce::dsp::Convolution::Normalise::yes);
+
+        irLoaded = true;
+    }
+    else
+    {
+        irLoaded = false;
     }
 
     //==============================================================
