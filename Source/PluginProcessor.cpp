@@ -66,8 +66,9 @@ AmpSimAudioProcessor::createParameterLayout()
 
     //==========================================================================
     // GAIN
-    // 0 = -12 dB
-    // 5 = 0 dB
+    //
+    // 0  = -12 dB
+    // 5  = 0 dB
     // 10 = +12 dB
     //==========================================================================
 
@@ -83,6 +84,7 @@ AmpSimAudioProcessor::createParameterLayout()
 
     //==========================================================================
     // BASS
+    // -12 dB to +12 dB
     //==========================================================================
 
     params.push_back(
@@ -97,6 +99,7 @@ AmpSimAudioProcessor::createParameterLayout()
 
     //==========================================================================
     // MID
+    // -12 dB to +12 dB
     //==========================================================================
 
     params.push_back(
@@ -111,6 +114,7 @@ AmpSimAudioProcessor::createParameterLayout()
 
     //==========================================================================
     // HI
+    // -12 dB to +12 dB
     //==========================================================================
 
     params.push_back(
@@ -126,10 +130,11 @@ AmpSimAudioProcessor::createParameterLayout()
     //==========================================================================
     // VOLUME
     //
-    // 0   = 0 dB
-    // 100 = +15 dB
+    // 0  = SILENT
+    // 10 = FULL OUTPUT
     //
-    // The Volume knob controls post-IR output boost.
+    // The +12 dB boost is NOT controlled by this parameter.
+    // The +12 dB boost is fixed after the 4x12 IR.
     //==========================================================================
 
     params.push_back(
@@ -138,9 +143,9 @@ AmpSimAudioProcessor::createParameterLayout()
             "Volume",
             juce::NormalisableRange<float>(
                 0.0f,
-                100.0f,
+                10.0f,
                 0.01f),
-            100.0f));
+            10.0f));
 
     return { params.begin(), params.end() };
 }
@@ -167,10 +172,12 @@ void AmpSimAudioProcessor::prepareToPlay(
         true);
 
     namInputData.resize(
-        static_cast<size_t>(samplesPerBlock));
+        static_cast<size_t>(
+            samplesPerBlock));
 
     namOutputData.resize(
-        static_cast<size_t>(samplesPerBlock));
+        static_cast<size_t>(
+            samplesPerBlock));
 
     //==========================================================================
     // MONO DSP SPEC
@@ -188,13 +195,20 @@ void AmpSimAudioProcessor::prepareToPlay(
     monoSpec.numChannels = 1;
 
     //==========================================================================
-    // INPUT / OUTPUT GAIN
+    // INPUT GAIN
     //==========================================================================
 
     inputGain.prepare(
         monoSpec);
 
     inputGain.reset();
+
+    //==========================================================================
+    // OUTPUT GAIN
+    //
+    // Used ONLY for fixed +12 dB boost.
+    // Volume is handled separately below.
+    //==========================================================================
 
     outputGain.prepare(
         monoSpec);
@@ -378,7 +392,6 @@ void AmpSimAudioProcessor::processBlock(
     else
     {
         monoBuffer.clear();
-
         return;
     }
 
@@ -463,6 +476,7 @@ void AmpSimAudioProcessor::processBlock(
 
     //==========================================================================
     // 4. BASS
+    //
     // 120 Hz LOW SHELF
     //==========================================================================
 
@@ -492,6 +506,7 @@ void AmpSimAudioProcessor::processBlock(
 
     //==========================================================================
     // 5. MID
+    //
     // 750 Hz PEAK
     //==========================================================================
 
@@ -521,6 +536,7 @@ void AmpSimAudioProcessor::processBlock(
 
     //==========================================================================
     // 6. HI
+    //
     // 4500 Hz HIGH SHELF
     //==========================================================================
 
@@ -567,31 +583,19 @@ void AmpSimAudioProcessor::processBlock(
     }
 
     //==========================================================================
-    // 8. OUTPUT VOLUME — POST IR BOOST
+    // 8. FIXED +12 dB OUTPUT BOOST
     //
-    // 0   = 0 dB
-    // 100 = +15 dB
+    // This boost is ALWAYS +12 dB.
     //
-    // Proportional:
-    // 25  = +3.75 dB
-    // 50  = +7.50 dB
-    // 75  = +11.25 dB
-    // 100 = +15.00 dB
+    // It is NOT controlled by the Volume knob.
+    // It happens AFTER the 4x12 IR.
     //==========================================================================
 
-    const float volumeValue =
-        volumeParameter != nullptr
-            ? volumeParameter->load()
-            : 100.0f;
-
-    const float volumeDb =
-        juce::jlimit(
-            0.0f,
-            15.0f,
-            volumeValue * 0.15f);
+    constexpr float fixedOutputBoostDb =
+        12.0f;
 
     outputGain.setGainDecibels(
-        volumeDb);
+        fixedOutputBoostDb);
 
     {
         juce::dsp::AudioBlock<float>
@@ -605,7 +609,43 @@ void AmpSimAudioProcessor::processBlock(
     }
 
     //==========================================================================
-    // 9. MONO -> IDENTICAL L/R
+    // 9. MASTER VOLUME
+    //
+    // 0  = SILENT
+    // 10 = FULL LEVEL
+    //
+    // IMPORTANT:
+    // This does NOT add dB boost.
+    //
+    // The +12 dB boost above is fixed.
+    // Volume simply controls how much of that signal reaches the output.
+    //==========================================================================
+
+    const float volumeValue =
+        volumeParameter != nullptr
+            ? volumeParameter->load()
+            : 10.0f;
+
+    const float volumeGain =
+        juce::jlimit(
+            0.0f,
+            1.0f,
+            volumeValue / 10.0f);
+
+    // Apply master volume directly.
+    //
+    // This guarantees:
+    // 0.0 = absolute silence.
+    //
+    for (int i = 0;
+         i < numSamples;
+         ++i)
+    {
+        monoData[i] *= volumeGain;
+    }
+
+    //==========================================================================
+    // 10. MONO -> IDENTICAL L/R
     //==========================================================================
 
     for (int channel = 0;
