@@ -14,19 +14,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Configure CMake
         run: |
-          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build RG Amp SIM
         run: |
-          cmake --build build --config Release --target AmpSim_VST3 --parallel
+          cmake --build build --parallel
 
       - name: Find VST3
         shell: pwsh
         run: |
           Write-Host "Searching for VST3..."
-          Get-ChildItem -Path build -Recurse -Filter "*.vst3" |
+
+          Get-ChildItem `
+            -Path build `
+            -Recurse `
+            -Filter "*.vst3" |
             ForEach-Object {
               Write-Host $_.FullName
             }
@@ -45,7 +54,10 @@ jobs:
             exit 1
           }
 
-          New-Item -ItemType Directory -Force -Path package | Out-Null
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path package | Out-Null
 
           Copy-Item `
             -Path $vst3.FullName `
