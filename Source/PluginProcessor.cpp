@@ -101,7 +101,7 @@ AmpSimAudioProcessor::createParameterLayout()
             "Volume",
             juce::NormalisableRange<float>(
                 0.0f,
-                24.0f,
+                50.0f,
                 0.01f),
             0.0f));
 
