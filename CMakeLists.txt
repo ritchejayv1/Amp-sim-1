@@ -37,14 +37,17 @@ FetchContent_MakeAvailable(NeuralAudio)
 
 file(GLOB_RECURSE NEURAL_AUDIO_HEADERS
     "${neuralaudio_SOURCE_DIR}/*.h"
+    "${neuralaudio_SOURCE_DIR}/*.hpp"
 )
 
 message(STATUS "==========================================")
 message(STATUS "NeuralAudio source: ${neuralaudio_SOURCE_DIR}")
 message(STATUS "NeuralAudio headers:")
+
 foreach(HEADER ${NEURAL_AUDIO_HEADERS})
     message(STATUS "  ${HEADER}")
 endforeach()
+
 message(STATUS "==========================================")
 
 #==============================================================
