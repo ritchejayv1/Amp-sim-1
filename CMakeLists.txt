@@ -54,13 +54,14 @@ juce_add_plugin(AmpSim
 )
 
 # ============================================================
-# Embedded NAM + IR
+# Embedded NAM + IR + UI IMAGE
 # ============================================================
 
 juce_add_binary_data(AmpSimAssets
     SOURCES
         "Assets/RG MBDR+precision.nam"
         "Assets/RG 412 MB mic 1.wav"
+        "Assets/rg100.jpg"
 )
 
 # ============================================================
