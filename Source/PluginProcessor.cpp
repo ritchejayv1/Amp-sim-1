@@ -126,8 +126,10 @@ AmpSimAudioProcessor::createParameterLayout()
     //==========================================================================
     // VOLUME
     //
-    // 0   = COMPLETE MUTE
-    // 100 = FULL VOLUME
+    // 0   = 0 dB
+    // 100 = +15 dB
+    //
+    // The Volume knob controls post-IR output boost.
     //==========================================================================
 
     params.push_back(
@@ -565,10 +567,16 @@ void AmpSimAudioProcessor::processBlock(
     }
 
     //==========================================================================
-    // 8. OUTPUT VOLUME
+    // 8. OUTPUT VOLUME — POST IR BOOST
     //
-    // 0   = COMPLETE MUTE
-    // 100 = FULL VOLUME
+    // 0   = 0 dB
+    // 100 = +15 dB
+    //
+    // Proportional:
+    // 25  = +3.75 dB
+    // 50  = +7.50 dB
+    // 75  = +11.25 dB
+    // 100 = +15.00 dB
     //==========================================================================
 
     const float volumeValue =
@@ -576,14 +584,14 @@ void AmpSimAudioProcessor::processBlock(
             ? volumeParameter->load()
             : 100.0f;
 
-    const float volumeLinear =
+    const float volumeDb =
         juce::jlimit(
             0.0f,
-            1.0f,
-            volumeValue / 100.0f);
+            15.0f,
+            volumeValue * 0.15f);
 
-    outputGain.setGainLinear(
-        volumeLinear);
+    outputGain.setGainDecibels(
+        volumeDb);
 
     {
         juce::dsp::AudioBlock<float>
