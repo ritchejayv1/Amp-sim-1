@@ -73,6 +73,7 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
 
     //==============================================================
     // VOLUME
+    // ACTUAL PARAMETER = 0 TO 100
     //==============================================================
 
     setupKnob(
@@ -80,6 +81,28 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
         0.0,
         100.0,
         0.01);
+
+    //==============================================================
+    // VOLUME POPUP DISPLAY
+    //
+    // Actual parameter:
+    //     0   = mute
+    //     50  = 50%
+    //     100 = full volume
+    //
+    // Display:
+    //     0   -> 0.0
+    //     50  -> 5.0
+    //     100 -> 10.0
+    //==============================================================
+
+    volumeKnob.textFromValueFunction =
+        [](double value)
+        {
+            return juce::String(
+                value / 10.0,
+                1);
+        };
 
     //==============================================================
     // LABELS
@@ -218,6 +241,10 @@ void AmpSimAudioProcessorEditor::setupKnob(
         true,
         min);
 
+    //==============================================================
+    // POPUP VALUE DISPLAY
+    //==============================================================
+
     slider.setPopupDisplayEnabled(
         true,
         true,
@@ -288,11 +315,17 @@ void AmpSimAudioProcessorEditor::resized()
     //==============================================================
     // 800 x 500 REFERENCE
     //
-    // GAIN    200,330
-    // BASS    295,330
-    // MID     390,330
-    // HI      485,330
-    // VOLUME  580,330
+    // KNOB SIZE = 45 px
+    // GAP       = 25 px
+    // CENTER    = 70 px
+    //
+    // GAIN      200
+    // BASS      270
+    // MID       340
+    // HI        410
+    // VOLUME    480
+    //
+    // Y = 330
     //==============================================================
 
     const float scaleX =
@@ -345,6 +378,10 @@ void AmpSimAudioProcessorEditor::resized()
                 knobSize);
         };
 
+    //==============================================================
+    // 25 PX GAP
+    //==============================================================
+
     setKnobPosition(
         gainKnob,
         200.0f,
@@ -352,31 +389,33 @@ void AmpSimAudioProcessorEditor::resized()
 
     setKnobPosition(
         bassKnob,
-        295.0f,
+        270.0f,
         330.0f);
 
     setKnobPosition(
         midKnob,
-        390.0f,
+        340.0f,
         330.0f);
 
     setKnobPosition(
         hiKnob,
-        485.0f,
+        410.0f,
         330.0f);
 
     setKnobPosition(
         volumeKnob,
-        580.0f,
+        480.0f,
         330.0f);
 
     //==============================================================
     // LABEL SIZE
+    //
+    // Proportional to the new 70 px center spacing.
     //==============================================================
 
     const int labelWidth =
         static_cast<int>(
-            75.0f * scale);
+            65.0f * scale);
 
     const int labelHeight =
         static_cast<int>(
@@ -410,25 +449,29 @@ void AmpSimAudioProcessorEditor::resized()
                 labelHeight);
         };
 
+    //==============================================================
+    // LABELS FOLLOW KNOB CENTERS
+    //==============================================================
+
     setLabelPosition(
         gainLabel,
         200.0f);
 
     setLabelPosition(
         bassLabel,
-        295.0f);
+        270.0f);
 
     setLabelPosition(
         midLabel,
-        390.0f);
+        340.0f);
 
     setLabelPosition(
         hiLabel,
-        485.0f);
+        410.0f);
 
     setLabelPosition(
         volumeLabel,
-        580.0f);
+        480.0f);
 }
 
 //==============================================================================
