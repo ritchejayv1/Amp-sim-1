@@ -3,25 +3,6 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
-//==============================================================================
-class RGKnobLookAndFeel : public juce::LookAndFeel_V4
-{
-public:
-    RGKnobLookAndFeel();
-
-    void drawRotarySlider(
-        juce::Graphics& g,
-        int x,
-        int y,
-        int width,
-        int height,
-        float sliderPosProportional,
-        float rotaryStartAngle,
-        float rotaryEndAngle,
-        juce::Slider& slider) override;
-};
-
-//==============================================================================
 class AmpSimAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
@@ -32,23 +13,25 @@ public:
     void resized() override;
 
 private:
-    //==============================================================
-    // Processor
-    //==============================================================
-
-    AmpSimAudioProcessor& audioProcessor;
 
     //==============================================================
-    // Background
+    // Custom knob drawing
     //==============================================================
 
-    juce::Image backgroundImage;
-
-    //==============================================================
-    // Look and feel
-    //==============================================================
-
-    RGKnobLookAndFeel knobLookAndFeel;
+    class RGKnobLookAndFeel : public juce::LookAndFeel_V4
+    {
+    public:
+        void drawRotarySlider(
+            juce::Graphics& g,
+            int x,
+            int y,
+            int width,
+            int height,
+            float sliderPosProportional,
+            float rotaryStartAngle,
+            float rotaryEndAngle,
+            juce::Slider& slider) override;
+    };
 
     //==============================================================
     // Knobs
@@ -60,6 +43,10 @@ private:
     juce::Slider hiKnob;
     juce::Slider volumeKnob;
 
+    //==============================================================
+    // Labels
+    //==============================================================
+
     juce::Label gainLabel;
     juce::Label bassLabel;
     juce::Label midLabel;
@@ -67,64 +54,50 @@ private:
     juce::Label volumeLabel;
 
     //==============================================================
-    // Parameter pointers
+    // APVTS attachments
     //==============================================================
 
-    juce::AudioProcessorParameter* gainParameter   = nullptr;
-    juce::AudioProcessorParameter* bassParameter   = nullptr;
-    juce::AudioProcessorParameter* midParameter    = nullptr;
-    juce::AudioProcessorParameter* hiParameter     = nullptr;
-    juce::AudioProcessorParameter* volumeParameter = nullptr;
+    std::unique_ptr<
+        juce::AudioProcessorValueTreeState::SliderAttachment>
+        gainAttachment;
+
+    std::unique_ptr<
+        juce::AudioProcessorValueTreeState::SliderAttachment>
+        bassAttachment;
+
+    std::unique_ptr<
+        juce::AudioProcessorValueTreeState::SliderAttachment>
+        midAttachment;
+
+    std::unique_ptr<
+        juce::AudioProcessorValueTreeState::SliderAttachment>
+        hiAttachment;
+
+    std::unique_ptr<
+        juce::AudioProcessorValueTreeState::SliderAttachment>
+        volumeAttachment;
 
     //==============================================================
-    // Reference layout
-    //==============================================================
 
-    static constexpr float referenceWidth  = 800.0f;
-    static constexpr float referenceHeight = 500.0f;
+    RGKnobLookAndFeel knobLookAndFeel;
 
-    static constexpr float gainX   = 184.0f;
-    static constexpr float bassX   = 292.0f;
-    static constexpr float midX    = 400.0f;
-    static constexpr float hiX     = 508.0f;
-    static constexpr float volumeX = 616.0f;
+    juce::Image backgroundImage;
 
-    static constexpr float knobY = 330.0f;
-
-    //==============================================================
-    // Setup
     //==============================================================
 
     void setupKnob(
-        juce::Slider& knob,
+        juce::Slider& slider,
+        double min,
+        double max,
+        double interval);
+
+    void setupLabel(
         juce::Label& label,
         const juce::String& text);
 
-    juce::AudioProcessorParameter* findParameter(
-        const juce::String& parameterName);
-
-    void connectKnobToParameter(
-        juce::Slider& knob,
-        juce::AudioProcessorParameter*& parameter,
-        const juce::String& parameterName);
-
-    void updateKnobFromParameter(
-        juce::Slider& knob,
-        juce::AudioProcessorParameter* parameter);
-
-    //==============================================================
-    // Parameter callbacks
     //==============================================================
 
-    void knobChanged(
-        juce::Slider& knob,
-        juce::AudioProcessorParameter* parameter);
-
-    //==============================================================
-    // Painting
-    //==============================================================
-
-    void drawAmplifierOverlay(juce::Graphics& g);
+    AmpSimAudioProcessor& audioProcessor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AmpSimAudioProcessorEditor)
