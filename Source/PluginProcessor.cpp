@@ -1,4 +1,4 @@
-5#include "PluginProcessor.h"
+#include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "BinaryData.h"
 
