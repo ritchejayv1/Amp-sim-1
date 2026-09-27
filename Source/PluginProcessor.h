@@ -6,7 +6,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 // NeuralAudio
-#include <NeuralAudio/NeuralAudio.h>
+#include <NeuralAudio.h>
 
 class AmpSimAudioProcessor : public juce::AudioProcessor
 {
