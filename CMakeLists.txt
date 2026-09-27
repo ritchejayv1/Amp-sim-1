@@ -5,11 +5,11 @@ project(AmpSim VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# ============================================================
-# JUCE
-# ============================================================
-
 include(FetchContent)
+
+# ==============================================================
+# JUCE
+# ==============================================================
 
 FetchContent_Declare(
     JUCE
@@ -19,9 +19,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(JUCE)
 
-# ============================================================
-# NeuralAudio / RTNeural
-# ============================================================
+# ==============================================================
+# NeuralAudio
+# ==============================================================
 
 FetchContent_Declare(
     NeuralAudio
@@ -31,13 +31,29 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(NeuralAudio)
 
-# ============================================================
-# Plugin
-# ============================================================
+# ==============================================================
+# Embedded Assets
+# ==============================================================
 
-juce_add_plugin(AmpSim
+juce_add_binary_data(
+    AmpSimAssets
+    SOURCES
+        "Assets/RG MBDR+precision.nam"
+        "Assets/RG 412 MB mic 1.wav"
+        "Assets/rg100.jpg"
+)
+
+# ==============================================================
+# Plugin
+# ==============================================================
+
+juce_add_plugin(
+    AmpSim
+
     COMPANY_NAME "RG Audio"
+
     BUNDLE_ID com.rgaudio.ampsim
+
     PLUGIN_MANUFACTURER_CODE RGAu
     PLUGIN_CODE Amp1
 
@@ -53,62 +69,62 @@ juce_add_plugin(AmpSim
     COPY_PLUGIN_AFTER_BUILD TRUE
 )
 
-# ============================================================
-# Embedded NAM + IR + UI IMAGE
-# ============================================================
+# ==============================================================
+# Source Files
+# ==============================================================
 
-juce_add_binary_data(AmpSimAssets
-    SOURCES
-        "Assets/RG MBDR+precision.nam"
-        "Assets/RG 412 MB mic 1.wav"
-        "Assets/rg100.jpg"
-)
-
-# ============================================================
-# Source
-# ============================================================
-
-target_sources(AmpSim
+target_sources(
+    AmpSim
     PRIVATE
+
         Source/PluginProcessor.cpp
         Source/PluginProcessor.h
+
         Source/PluginEditor.cpp
         Source/PluginEditor.h
 )
 
-# ============================================================
+# ==============================================================
 # Libraries
-# ============================================================
+# ==============================================================
 
-target_link_libraries(AmpSim
+target_link_libraries(
+    AmpSim
     PRIVATE
+
         AmpSimAssets
         NeuralAudio
+
         juce::juce_audio_utils
         juce::juce_dsp
         juce::juce_gui_extra
 
     PUBLIC
+
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
 )
 
-# ============================================================
-# Definitions
-# ============================================================
+# ==============================================================
+# JUCE Configuration
+# ==============================================================
 
-target_compile_definitions(AmpSim
+target_compile_definitions(
+    AmpSim
     PRIVATE
+
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
 )
 
-# ============================================================
-# Organization
-# ============================================================
+# ==============================================================
+# Folder
+# ==============================================================
 
-set_target_properties(AmpSim PROPERTIES
-    FOLDER "RG Audio"
+set_target_properties(
+    AmpSim
+    PROPERTIES
+        FOLDER "RG Audio"
 )
