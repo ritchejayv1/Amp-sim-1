@@ -1,89 +1,310 @@
 #include "PluginEditor.h"
-
 #include "BinaryData.h"
 
+#include <cmath>
+
 //==============================================================================
+namespace
+{
+    constexpr float twoPi = juce::MathConstants<float>::twoPi;
+
+    constexpr float rotaryStart =
+        juce::MathConstants<float>::pi * 1.25f;
+
+    constexpr float rotaryEnd =
+        juce::MathConstants<float>::pi * 2.75f;
+
+    // Reference knob size
+    constexpr float knobSize = 72.0f;
+}
+
+//==============================================================================
+// RG KNOB LOOK AND FEEL
+//==============================================================================
+
+RGKnobLookAndFeel::RGKnobLookAndFeel()
+{
+}
+
+//==============================================================================
+void RGKnobLookAndFeel::drawRotarySlider(
+    juce::Graphics& g,
+    int x,
+    int y,
+    int width,
+    int height,
+    float sliderPosProportional,
+    float rotaryStartAngle,
+    float rotaryEndAngle,
+    juce::Slider& slider)
+{
+    const float diameter =
+        static_cast<float>(
+            juce::jmin(width, height));
+
+    const float radius =
+        diameter * 0.5f;
+
+    const float centreX =
+        static_cast<float>(x) +
+        static_cast<float>(width) * 0.5f;
+
+    const float centreY =
+        static_cast<float>(y) +
+        static_cast<float>(height) * 0.5f;
+
+    const float knobRadius =
+        radius - 4.0f;
+
+    //==============================================================
+    // Outer shadow
+    //==============================================================
+
+    g.setColour(
+        juce::Colours::black.withAlpha(0.80f));
+
+    g.fillEllipse(
+        centreX - knobRadius - 2.0f,
+        centreY - knobRadius + 3.0f,
+        (knobRadius + 2.0f) * 2.0f,
+        (knobRadius + 2.0f) * 2.0f);
+
+    //==============================================================
+    // Outer ring
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(20, 20, 20));
+
+    g.fillEllipse(
+        centreX - knobRadius,
+        centreY - knobRadius,
+        knobRadius * 2.0f,
+        knobRadius * 2.0f);
+
+    //==============================================================
+    // Main knob
+    //==============================================================
+
+    const float innerRadius =
+        knobRadius - 5.0f;
+
+    g.setColour(
+        juce::Colour(55, 55, 55));
+
+    g.fillEllipse(
+        centreX - innerRadius,
+        centreY - innerRadius,
+        innerRadius * 2.0f,
+        innerRadius * 2.0f);
+
+    //==============================================================
+    // Highlight
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(90, 90, 90));
+
+    g.drawEllipse(
+        centreX - innerRadius,
+        centreY - innerRadius,
+        innerRadius * 2.0f,
+        innerRadius * 2.0f,
+        1.5f);
+
+    //==============================================================
+    // Position indicator
+    //==============================================================
+
+    const float angle =
+        rotaryStartAngle +
+        sliderPosProportional *
+        (rotaryEndAngle - rotaryStartAngle);
+
+    const float indicatorRadius =
+        innerRadius - 8.0f;
+
+    const float indicatorX =
+        centreX +
+        std::cos(angle) * indicatorRadius;
+
+    const float indicatorY =
+        centreY +
+        std::sin(angle) * indicatorRadius;
+
+    g.setColour(
+        juce::Colours::white);
+
+    g.drawLine(
+        centreX,
+        centreY,
+        indicatorX,
+        indicatorY,
+        3.0f);
+
+    //==============================================================
+    // Center
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(25, 25, 25));
+
+    g.fillEllipse(
+        centreX - 6.0f,
+        centreY - 6.0f,
+        12.0f,
+        12.0f);
+
+    //==============================================================
+    // Active indicator arc
+    //==============================================================
+
+    juce::Path arc;
+
+    const float arcRadius =
+        knobRadius + 1.0f;
+
+    arc.addCentredArc(
+        centreX,
+        centreY,
+        arcRadius,
+        arcRadius,
+        0.0f,
+        rotaryStartAngle,
+        angle,
+        true);
+
+    g.setColour(
+        juce::Colour(80, 160, 255));
+
+    g.strokePath(
+        arc,
+        juce::PathStrokeType(
+            3.0f,
+            juce::PathStrokeType::curved,
+            juce::PathStrokeType::rounded));
+}
+
+//==============================================================================
+// EDITOR
+//==============================================================================
+
 AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
     AmpSimAudioProcessor& p)
     : AudioProcessorEditor(&p),
       audioProcessor(p)
 {
     //==============================================================
-    // Load embedded RG100 JPG
+    // Load RG100 background
     //==============================================================
 
-    backgroundImage = juce::ImageCache::getFromMemory(
-        BinaryData::rg100jpg,
-        BinaryData::rg100jpgSize);
+    backgroundImage =
+        juce::ImageCache::getFromMemory(
+            BinaryData::rg100jpg,
+            BinaryData::rg100jpgSize);
 
     //==============================================================
-    // Window
+    // Plugin window
     //==============================================================
 
-    setSize(1000, 700);
+    setSize(800, 500);
+
+    setResizable(
+        true,
+        true);
 
     //==============================================================
-    // Sliders
+    // GAIN
     //==============================================================
 
-    setupSlider(gainSlider, gainLabel, "GAIN");
-    setupSlider(bassSlider, bassLabel, "BASS");
-    setupSlider(midSlider, midLabel, "MID");
-    setupSlider(hiSlider, hiLabel, "HI");
-    setupSlider(volumeSlider, volumeLabel, "VOLUME");
+    setupKnob(
+        gainKnob,
+        gainLabel,
+        "GAIN");
 
     //==============================================================
-    // Buttons
+    // BASS
     //==============================================================
 
-    setupButton(loadNAMButton, "LOAD NAM");
-    setupButton(loadIRButton, "LOAD IR");
-    setupButton(bypassButton, "BYPASS");
-
-    loadNAMButton.onClick = [this]
-    {
-        loadNAM();
-    };
-
-    loadIRButton.onClick = [this]
-    {
-        loadIR();
-    };
-
-    bypassButton.onClick = [this]
-    {
-        toggleBypass();
-    };
+    setupKnob(
+        bassKnob,
+        bassLabel,
+        "BASS");
 
     //==============================================================
-    // File labels
+    // MID
     //==============================================================
 
-    namNameLabel.setText(
-        "NAM: Embedded",
-        juce::dontSendNotification);
+    setupKnob(
+        midKnob,
+        midLabel,
+        "MID");
 
-    namNameLabel.setColour(
-        juce::Label::textColourId,
-        juce::Colours::white);
+    //==============================================================
+    // HI
+    //==============================================================
 
-    namNameLabel.setJustificationType(
-        juce::Justification::centredLeft);
+    setupKnob(
+        hiKnob,
+        hiLabel,
+        "HI");
 
-    addAndMakeVisible(namNameLabel);
+    //==============================================================
+    // VOLUME
+    //==============================================================
 
-    irNameLabel.setText(
-        "IR: Embedded",
-        juce::dontSendNotification);
+    setupKnob(
+        volumeKnob,
+        volumeLabel,
+        "VOLUME");
 
-    irNameLabel.setColour(
-        juce::Label::textColourId,
-        juce::Colours::white);
+    //==============================================================
+    // Find processor parameters
+    //==============================================================
 
-    irNameLabel.setJustificationType(
-        juce::Justification::centredLeft);
+    gainParameter =
+        findParameter("GAIN");
 
-    addAndMakeVisible(irNameLabel);
+    bassParameter =
+        findParameter("BASS");
+
+    midParameter =
+        findParameter("MID");
+
+    hiParameter =
+        findParameter("HI");
+
+    volumeParameter =
+        findParameter("VOLUME");
+
+    //==============================================================
+    // Connect knobs
+    //==============================================================
+
+    connectKnobToParameter(
+        gainKnob,
+        gainParameter,
+        "GAIN");
+
+    connectKnobToParameter(
+        bassKnob,
+        bassParameter,
+        "BASS");
+
+    connectKnobToParameter(
+        midKnob,
+        midParameter,
+        "MID");
+
+    connectKnobToParameter(
+        hiKnob,
+        hiParameter,
+        "HI");
+
+    connectKnobToParameter(
+        volumeKnob,
+        volumeParameter,
+        "VOLUME");
 }
 
 //==============================================================================
@@ -92,10 +313,14 @@ AmpSimAudioProcessorEditor::~AmpSimAudioProcessorEditor()
 }
 
 //==============================================================================
-void AmpSimAudioProcessorEditor::paint(juce::Graphics& g)
+// PAINT
+//==============================================================================
+
+void AmpSimAudioProcessorEditor::paint(
+    juce::Graphics& g)
 {
     //==============================================================
-    // Background
+    // Background image
     //==============================================================
 
     if (backgroundImage.isValid())
@@ -111,321 +336,330 @@ void AmpSimAudioProcessorEditor::paint(juce::Graphics& g)
     }
     else
     {
-        g.fillAll(juce::Colours::black);
+        g.fillAll(
+            juce::Colour(30, 30, 30));
     }
 
     //==============================================================
-    // Subtle dark overlay
+    // Very subtle overlay
     //==============================================================
 
     g.setColour(
-        juce::Colours::black.withAlpha(0.18f));
+        juce::Colours::black.withAlpha(0.06f));
 
-    g.fillRect(getLocalBounds());
-
-    //==============================================================
-    // RG Amp SIM title
-    //==============================================================
-
-    g.setColour(juce::Colours::white);
-
-    g.setFont(
-        juce::FontOptions(28.0f)
-            .withStyle("bold"));
-
-    g.drawText(
-        "RG AMP SIM",
-        25,
-        15,
-        300,
-        40,
-        juce::Justification::left,
-        false);
+    g.fillRect(
+        getLocalBounds());
 
     //==============================================================
-    // Small RG Audio text
+    // Optional amplifier overlay
     //==============================================================
 
-    g.setFont(
-        juce::FontOptions(13.0f));
-
-    g.setColour(
-        juce::Colours::white.withAlpha(0.75f));
-
-    g.drawText(
-        "RG AUDIO",
-        27,
-        48,
-        200,
-        20,
-        juce::Justification::left,
-        false);
+    drawAmplifierOverlay(g);
 }
 
 //==============================================================================
+// AMPLIFIER OVERLAY
+//==============================================================================
+
+void AmpSimAudioProcessorEditor::drawAmplifierOverlay(
+    juce::Graphics& g)
+{
+    const float scaleX =
+        static_cast<float>(getWidth()) /
+        referenceWidth;
+
+    const float scaleY =
+        static_cast<float>(getHeight()) /
+        referenceHeight;
+
+    //==============================================================
+    // Keep text extremely subtle because the JPG is the main UI.
+    //==============================================================
+
+    juce::ignoreUnused(scaleX);
+    juce::ignoreUnused(scaleY);
+}
+
+//==============================================================================
+// RESIZED
+//==============================================================================
+
 void AmpSimAudioProcessorEditor::resized()
 {
     //==============================================================
-    // The image is the main UI.
-    //
-    // These controls are positioned as overlays.
-    // Adjust these coordinates later to exactly match the controls
-    // in rg100.jpg.
+    // Scale reference 800x500 coordinates
     //==============================================================
 
-    // GAIN
-    gainSlider.setBounds(
-        170,
-        300,
-        100,
-        100);
+    const float scaleX =
+        static_cast<float>(getWidth()) /
+        referenceWidth;
 
-    gainLabel.setBounds(
-        170,
-        405,
-        100,
-        22);
+    const float scaleY =
+        static_cast<float>(getHeight()) /
+        referenceHeight;
 
-    // BASS
-    bassSlider.setBounds(
-        300,
-        300,
-        100,
-        100);
-
-    bassLabel.setBounds(
-        300,
-        405,
-        100,
-        22);
-
-    // MID
-    midSlider.setBounds(
-        430,
-        300,
-        100,
-        100);
-
-    midLabel.setBounds(
-        430,
-        405,
-        100,
-        22);
-
-    // HI
-    hiSlider.setBounds(
-        560,
-        300,
-        100,
-        100);
-
-    hiLabel.setBounds(
-        560,
-        405,
-        100,
-        22);
-
-    // VOLUME
-    volumeSlider.setBounds(
-        690,
-        300,
-        100,
-        100);
-
-    volumeLabel.setBounds(
-        690,
-        405,
-        100,
-        22);
+    const int actualKnobSize =
+        static_cast<int>(
+            knobSize *
+            juce::jmin(scaleX, scaleY));
 
     //==============================================================
-    // NAM / IR buttons
+    // Helper
     //==============================================================
 
-    loadNAMButton.setBounds(
-        30,
-        getHeight() - 100,
-        140,
-        40);
+    auto positionKnob =
+        [&](juce::Slider& knob,
+            juce::Label& label,
+            float centreX,
+            float centreY)
+    {
+        const int x =
+            static_cast<int>(
+                centreX * scaleX -
+                actualKnobSize * 0.5f);
 
-    loadIRButton.setBounds(
-        180,
-        getHeight() - 100,
-        140,
-        40);
+        const int y =
+            static_cast<int>(
+                centreY * scaleY -
+                actualKnobSize * 0.5f);
 
-    bypassButton.setBounds(
-        getWidth() - 170,
-        getHeight() - 100,
-        140,
-        40);
+        knob.setBounds(
+            x,
+            y,
+            actualKnobSize,
+            actualKnobSize);
+
+        const int labelWidth =
+            static_cast<int>(
+                90.0f * scaleX);
+
+        const int labelHeight =
+            static_cast<int>(
+                22.0f * scaleY);
+
+        label.setBounds(
+            static_cast<int>(
+                centreX * scaleX -
+                labelWidth * 0.5f),
+            y + actualKnobSize + 2,
+            labelWidth,
+            labelHeight);
+    };
 
     //==============================================================
-    // File names
+    // EXACT REFERENCE COORDINATES
     //==============================================================
 
-    namNameLabel.setBounds(
-        30,
-        getHeight() - 145,
-        300,
-        25);
+    positionKnob(
+        gainKnob,
+        gainLabel,
+        gainX,
+        knobY);
 
-    irNameLabel.setBounds(
-        30,
-        getHeight() - 120,
-        300,
-        25);
+    positionKnob(
+        bassKnob,
+        bassLabel,
+        bassX,
+        knobY);
+
+    positionKnob(
+        midKnob,
+        midLabel,
+        midX,
+        knobY);
+
+    positionKnob(
+        hiKnob,
+        hiLabel,
+        hiX,
+        knobY);
+
+    positionKnob(
+        volumeKnob,
+        volumeLabel,
+        volumeX,
+        knobY);
 }
 
 //==============================================================================
-void AmpSimAudioProcessorEditor::setupSlider(
-    juce::Slider& slider,
+// SETUP KNOB
+//==============================================================================
+
+void AmpSimAudioProcessorEditor::setupKnob(
+    juce::Slider& knob,
     juce::Label& label,
-    const juce::String& labelText)
+    const juce::String& text)
 {
-    addAndMakeVisible(slider);
+    addAndMakeVisible(knob);
     addAndMakeVisible(label);
 
-    slider.setSliderStyle(
+    //==============================================================
+    // Rotary
+    //==============================================================
+
+    knob.setSliderStyle(
         juce::Slider::RotaryHorizontalVerticalDrag);
 
-    slider.setTextBoxStyle(
-        juce::Slider::TextBoxBelow,
-        false,
-        70,
-        20);
+    knob.setRotaryParameters(
+        rotaryStart,
+        rotaryEnd,
+        true);
 
-    slider.setRange(
+    knob.setTextBoxStyle(
+        juce::Slider::NoTextBox,
+        false,
+        0,
+        0);
+
+    knob.setRange(
         0.0,
         1.0,
         0.001);
 
-    slider.setValue(
+    knob.setValue(
         0.5,
         juce::dontSendNotification);
 
-    slider.setColour(
-        juce::Slider::rotarySliderFillColourId,
-        juce::Colours::white);
+    knob.setLookAndFeel(
+        &knobLookAndFeel);
 
-    slider.setColour(
-        juce::Slider::thumbColourId,
-        juce::Colours::white);
-
-    slider.setColour(
-        juce::Slider::textBoxTextColourId,
-        juce::Colours::white);
-
-    slider.setColour(
-        juce::Slider::textBoxBackgroundColourId,
-        juce::Colours::black.withAlpha(0.65f));
-
-    slider.setColour(
-        juce::Slider::textBoxOutlineColourId,
-        juce::Colours::transparentBlack);
+    //==============================================================
+    // Label
+    //==============================================================
 
     label.setText(
-        labelText,
+        text,
         juce::dontSendNotification);
+
+    label.setFont(
+        juce::FontOptions(12.0f)
+            .withStyle("bold"));
 
     label.setColour(
         juce::Label::textColourId,
         juce::Colours::white);
-
-    label.setFont(
-        juce::FontOptions(13.0f)
-            .withStyle("bold"));
 
     label.setJustificationType(
         juce::Justification::centred);
 }
 
 //==============================================================================
-void AmpSimAudioProcessorEditor::setupButton(
-    juce::TextButton& button,
-    const juce::String& text)
+// FIND PARAMETER
+//==============================================================================
+
+juce::AudioProcessorParameter*
+AmpSimAudioProcessorEditor::findParameter(
+    const juce::String& parameterName)
 {
-    addAndMakeVisible(button);
+    for (auto* parameter :
+         audioProcessor.getParameters())
+    {
+        if (parameter == nullptr)
+            continue;
 
-    button.setButtonText(text);
+        const auto name =
+            parameter->getName(100);
 
-    button.setColour(
-        juce::TextButton::buttonColourId,
-        juce::Colours::black.withAlpha(0.75f));
+        if (name.equalsIgnoreCase(parameterName))
+            return parameter;
 
-    button.setColour(
-        juce::TextButton::buttonOnColourId,
-        juce::Colours::white.withAlpha(0.20f));
+        // Also accept names such as:
+        // "Gain", "Amp Gain", "GAIN"
+        if (name.containsIgnoreCase(parameterName))
+            return parameter;
+    }
 
-    button.setColour(
-        juce::TextButton::textColourOffId,
-        juce::Colours::white);
-
-    button.setColour(
-        juce::TextButton::textColourOnId,
-        juce::Colours::white);
+    return nullptr;
 }
 
 //==============================================================================
-void AmpSimAudioProcessorEditor::loadNAM()
-{
-    juce::FileChooser chooser(
-        "Load NAM Model",
-        juce::File{},
-        "*.nam");
+// CONNECT KNOB
+//==============================================================================
 
-    chooser.launchAsync(
-        juce::FileBrowserComponent::openMode
-        | juce::FileBrowserComponent::canSelectFiles,
-        [this](const juce::FileChooser& fc)
+void AmpSimAudioProcessorEditor::connectKnobToParameter(
+    juce::Slider& knob,
+    juce::AudioProcessorParameter*& parameter,
+    const juce::String& parameterName)
+{
+    if (parameter == nullptr)
+    {
+        // Parameter does not exist yet.
+        // The knob remains usable as a UI control.
+        knob.setValue(
+            0.5,
+            juce::dontSendNotification);
+
+        knob.onValueChange = [&knob]
         {
-            const auto file = fc.getResult();
+            juce::ignoreUnused(knob);
+        };
 
-            if (file.existsAsFile())
-            {
-                audioProcessor.loadNAM(file);
+        return;
+    }
 
-                namNameLabel.setText(
-                    "NAM: " + file.getFileName(),
-                    juce::dontSendNotification);
-            }
-        });
+    //==============================================================
+    // Set knob from processor parameter
+    //==============================================================
+
+    updateKnobFromParameter(
+        knob,
+        parameter);
+
+    //==============================================================
+    // Send knob changes to processor
+    //==============================================================
+
+    knob.onValueChange =
+        [this, &knob, parameter]
+    {
+        knobChanged(
+            knob,
+            parameter);
+    };
+
+    juce::ignoreUnused(parameterName);
 }
 
 //==============================================================================
-void AmpSimAudioProcessorEditor::loadIR()
+// UPDATE KNOB FROM PARAMETER
+//==============================================================================
+
+void AmpSimAudioProcessorEditor::updateKnobFromParameter(
+    juce::Slider& knob,
+    juce::AudioProcessorParameter* parameter)
 {
-    juce::FileChooser chooser(
-        "Load IR",
-        juce::File{},
-        "*.wav;*.aiff;*.aif");
+    if (parameter == nullptr)
+        return;
 
-    chooser.launchAsync(
-        juce::FileBrowserComponent::openMode
-        | juce::FileBrowserComponent::canSelectFiles,
-        [this](const juce::FileChooser& fc)
-        {
-            const auto file = fc.getResult();
+    const float normalized =
+        parameter->getValue();
 
-            if (file.existsAsFile())
-            {
-                audioProcessor.loadIR(file);
-
-                irNameLabel.setText(
-                    "IR: " + file.getFileName(),
-                    juce::dontSendNotification);
-            }
-        });
+    knob.setValue(
+        juce::jlimit(
+            0.0,
+            1.0,
+            static_cast<double>(normalized)),
+        juce::dontSendNotification);
 }
 
 //==============================================================================
-void AmpSimAudioProcessorEditor::toggleBypass()
+// KNOB CHANGED
+//==============================================================================
+
+void AmpSimAudioProcessorEditor::knobChanged(
+    juce::Slider& knob,
+    juce::AudioProcessorParameter* parameter)
 {
-    const bool newState =
-        !audioProcessor.getBypass();
+    if (parameter == nullptr)
+        return;
 
-    audioProcessor.setBypass(newState);
+    const float normalized =
+        static_cast<float>(
+            juce::jlimit(
+                0.0,
+                1.0,
+                knob.getValue()));
 
-    bypassButton.setButtonText(
-        newState ? "BYPASSED" : "BYPASS");
+    parameter->setValueNotifyingHost(
+        normalized);
 }
