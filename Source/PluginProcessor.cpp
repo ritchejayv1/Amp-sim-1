@@ -735,3 +735,12 @@ bool AmpSimAudioProcessor::hasEditor() const
 {
     return true;
 }
+
+//==============================================================================
+// JUCE VST3 FACTORY
+//==============================================================================
+
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new AmpSimAudioProcessor();
+}
