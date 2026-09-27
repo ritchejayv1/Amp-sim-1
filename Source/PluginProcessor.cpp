@@ -92,9 +92,6 @@ AmpSimAudioProcessor::AmpSimAudioProcessor()
 
     //==============================================================
     // Load NAM
-    //
-    // NeuralAudio external sample rate must be configured
-    // BEFORE CreateFromFile().
     //==============================================================
 
     namLoaded = loadNAM();
@@ -230,9 +227,6 @@ void AmpSimAudioProcessor::prepareToPlay(
 
     //==============================================================
     // NAM maximum buffer size
-    //
-    // This is done here, NOT inside processBlock.
-    // NeuralAudio documents this operation as non-real-time-safe.
     //==============================================================
 
     if (namModel != nullptr)
@@ -244,15 +238,6 @@ void AmpSimAudioProcessor::prepareToPlay(
             "RG Amp SIM: NAM max buffer size = "
             + juce::String(samplesPerBlock));
     }
-
-    //==============================================================
-    // IMPORTANT:
-    //
-    // Do NOT call SetExternalSampleRate() here.
-    //
-    // The model was already loaded in loadNAM().
-    // NeuralAudio applies external sample-rate changes during load.
-    //==============================================================
 
     //==============================================================
     // Input Gain
@@ -318,7 +303,7 @@ void AmpSimAudioProcessor::prepareToPlay(
     highFilter.reset();
 
     //==============================================================
-    // IR
+    // IR Convolution
     //==============================================================
 
     irConvolution.reset();
@@ -499,10 +484,7 @@ void AmpSimAudioProcessor::processBlock(
     if (namLoaded &&
         namModel != nullptr)
     {
-        //==========================================================
         // Stereo -> Mono
-        //==========================================================
-
         for (int sample = 0;
              sample < numSamples;
              ++sample)
@@ -538,19 +520,13 @@ void AmpSimAudioProcessor::processBlock(
                 = inputSample;
         }
 
-        //==========================================================
-        // NAM processing
-        //==========================================================
-
+        // Actual NAM processing
         namModel->Process(
             namInputData.data(),
             namOutputData.data(),
             numSamples);
 
-        //==========================================================
         // Mono -> Stereo
-        //==========================================================
-
         if (numChannels == 1)
         {
             buffer.copyFrom(
@@ -720,21 +696,18 @@ bool AmpSimAudioProcessor::loadNAM()
             std::make_unique<
                 NeuralAudio::NeuralModelLoader>();
 
-        //==========================================================
         // IMPORTANT:
-        //
-        // The model is loaded for 48 kHz.
-        // NeuralAudio applies this setting during model loading.
-        //==========================================================
-
+        // NeuralAudio expects this before CreateFromFile().
         namLoader->SetExternalSampleRate(
-            48000.0);
+            48000);
 
-        namModel =
+        // CreateFromFile() returns NeuralModel*
+        // so we explicitly transfer ownership.
+        namModel.reset(
             namLoader->CreateFromFile(
                 namTempFile
                     .getFullPathName()
-                    .toStdString());
+                    .toStdString()));
 
         if (namModel == nullptr)
         {
@@ -748,7 +721,7 @@ bool AmpSimAudioProcessor::loadNAM()
             "RG Amp SIM: Neural model created.");
 
         //==========================================================
-        // Calibration
+        // Recommended calibration
         //==========================================================
 
         const float recommendedInput =
@@ -824,19 +797,21 @@ bool AmpSimAudioProcessor::loadIR()
     DBG("RG Amp SIM: IR found");
     DBG(
         irTempFile.getFullPathName());
+
     DBG(
         "IR file size: "
         + juce::String(
             irTempFile.getSize()));
+
     DBG("==========================================");
 
-    // Actual convolution preparation happens
-    // in prepareToPlay().
+    // Actual convolution loading happens
+    // inside prepareToPlay().
     return true;
 }
 
 //==============================================================================
-// State
+// State Save
 //==============================================================================
 
 void AmpSimAudioProcessor::getStateInformation(
@@ -846,13 +821,18 @@ void AmpSimAudioProcessor::getStateInformation(
         parameters.copyState();
 
     std::unique_ptr<juce::XmlElement> xml =
-        parameters.stateToXml(state);
+        state.createXml();
 
-    copyXmlToBinary(
-        *xml,
-        destData);
+    if (xml != nullptr)
+    {
+        copyXmlToBinary(
+            *xml,
+            destData);
+    }
 }
 
+//==============================================================================
+// State Load
 //==============================================================================
 
 void AmpSimAudioProcessor::setStateInformation(
@@ -869,9 +849,15 @@ void AmpSimAudioProcessor::setStateInformation(
         xmlState->hasTagName(
             parameters.state.getType()))
     {
-        parameters.replaceState(
-            parameters.xmlToState(
-                *xmlState));
+        const auto restoredState =
+            juce::ValueTree::fromXml(
+                *xmlState);
+
+        if (restoredState.isValid())
+        {
+            parameters.replaceState(
+                restoredState);
+        }
     }
 }
 
