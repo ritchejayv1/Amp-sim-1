@@ -3,31 +3,252 @@
 
 #include <cmath>
 
-//==============================================================================
+//==============================================================
+// Reference design
+//==============================================================
+
 namespace
 {
-    constexpr float twoPi = juce::MathConstants<float>::twoPi;
+    constexpr float referenceWidth  = 800.0f;
+    constexpr float referenceHeight = 500.0f;
 
-    constexpr float rotaryStart =
-        juce::MathConstants<float>::pi * 1.25f;
+    // Knob centers from the RG100 layout
+    constexpr float gainX   = 184.0f;
+    constexpr float bassX   = 292.0f;
+    constexpr float midX    = 400.0f;
+    constexpr float hiX     = 508.0f;
+    constexpr float volumeX = 616.0f;
 
-    constexpr float rotaryEnd =
-        juce::MathConstants<float>::pi * 2.75f;
+    constexpr float knobY = 330.0f;
 
-    // Reference knob size
     constexpr float knobSize = 72.0f;
+
+    constexpr float labelOffset = 50.0f;
 }
 
-//==============================================================================
-// RG KNOB LOOK AND FEEL
-//==============================================================================
+//==============================================================
+// Constructor
+//==============================================================
 
-RGKnobLookAndFeel::RGKnobLookAndFeel()
+AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
+    AmpSimAudioProcessor& p)
+    : AudioProcessorEditor(&p),
+      audioProcessor(p)
 {
+    //==========================================================
+    // Load RG100 background
+    //==========================================================
+
+    int imageSize = 0;
+
+    if (const void* imageData =
+            BinaryData::getNamedResource(
+                "rg100jpg",
+                imageSize))
+    {
+        backgroundImage =
+            juce::ImageFileFormatManager()
+                .getInstance()
+                .findImageFormatForFileExtension(".jpg")
+                ->decodeImage(
+                    imageData,
+                    imageSize);
+    }
+
+    //==========================================================
+    // Setup knobs
+    //==========================================================
+
+    setupKnob(
+        gainKnob,
+        0.0,
+        10.0,
+        0.01);
+
+    setupKnob(
+        bassKnob,
+        -12.0,
+        12.0,
+        0.01);
+
+    setupKnob(
+        midKnob,
+        -12.0,
+        12.0,
+        0.01);
+
+    setupKnob(
+        hiKnob,
+        -12.0,
+        12.0,
+        0.01);
+
+    setupKnob(
+        volumeKnob,
+        -24.0,
+        12.0,
+        0.01);
+
+    //==========================================================
+    // Labels
+    //==========================================================
+
+    setupLabel(gainLabel, "GAIN");
+    setupLabel(bassLabel, "BASS");
+    setupLabel(midLabel, "MID");
+    setupLabel(hiLabel, "HI");
+    setupLabel(volumeLabel, "VOLUME");
+
+    //==========================================================
+    // APVTS connections
+    //==========================================================
+
+    gainAttachment =
+        std::make_unique<
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "GAIN",
+                gainKnob);
+
+    bassAttachment =
+        std::make_unique<
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "BASS",
+                bassKnob);
+
+    midAttachment =
+        std::make_unique<
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "MID",
+                midKnob);
+
+    hiAttachment =
+        std::make_unique<
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "HI",
+                hiKnob);
+
+    volumeAttachment =
+        std::make_unique<
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "VOLUME",
+                volumeKnob);
+
+    //==========================================================
+    // Window
+    //==========================================================
+
+    setSize(
+        static_cast<int>(referenceWidth),
+        static_cast<int>(referenceHeight));
+
+    setResizable(
+        true,
+        true);
+
+    setResizeLimits(
+        600,
+        375,
+        1600,
+        1000);
 }
 
-//==============================================================================
-void RGKnobLookAndFeel::drawRotarySlider(
+//==============================================================
+// Destructor
+//==============================================================
+
+AmpSimAudioProcessorEditor::~AmpSimAudioProcessorEditor()
+{
+    gainAttachment.reset();
+    bassAttachment.reset();
+    midAttachment.reset();
+    hiAttachment.reset();
+    volumeAttachment.reset();
+
+    gainKnob.setLookAndFeel(nullptr);
+    bassKnob.setLookAndFeel(nullptr);
+    midKnob.setLookAndFeel(nullptr);
+    hiKnob.setLookAndFeel(nullptr);
+    volumeKnob.setLookAndFeel(nullptr);
+}
+
+//==============================================================
+// Setup knob
+//==============================================================
+
+void AmpSimAudioProcessorEditor::setupKnob(
+    juce::Slider& slider,
+    double min,
+    double max,
+    double interval)
+{
+    slider.setSliderStyle(
+        juce::Slider::RotaryHorizontalVerticalDrag);
+
+    slider.setTextBoxStyle(
+        juce::Slider::NoTextBox,
+        false,
+        0,
+        0);
+
+    slider.setRange(
+        min,
+        max,
+        interval);
+
+    slider.setValue(
+        (min + max) * 0.5);
+
+    slider.setLookAndFeel(
+        &knobLookAndFeel);
+
+    slider.setDoubleClickReturnValue(
+        true,
+        (min + max) * 0.5);
+
+    addAndMakeVisible(slider);
+}
+
+//==============================================================
+// Setup label
+//==============================================================
+
+void AmpSimAudioProcessorEditor::setupLabel(
+    juce::Label& label,
+    const juce::String& text)
+{
+    label.setText(
+        text,
+        juce::dontSendNotification);
+
+    label.setJustificationType(
+        juce::Justification::centred);
+
+    label.setFont(
+        juce::Font(
+            14.0f,
+            juce::Font::bold));
+
+    label.setColour(
+        juce::Label::textColourId,
+        juce::Colours::white);
+
+    label.setInterceptsMouseClicks(
+        false,
+        false);
+
+    addAndMakeVisible(label);
+}
+
+//==============================================================
+// Knob drawing
+//==============================================================
+
+void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
     juce::Graphics& g,
     int x,
     int y,
@@ -36,630 +257,286 @@ void RGKnobLookAndFeel::drawRotarySlider(
     float sliderPosProportional,
     float rotaryStartAngle,
     float rotaryEndAngle,
-    juce::Slider& slider)
+    juce::Slider&)
 {
-    const float diameter =
+    const float size =
         static_cast<float>(
             juce::jmin(width, height));
 
+    const float cx =
+        static_cast<float>(x)
+        + static_cast<float>(width) * 0.5f;
+
+    const float cy =
+        static_cast<float>(y)
+        + static_cast<float>(height) * 0.5f;
+
     const float radius =
-        diameter * 0.5f;
+        size * 0.42f;
 
-    const float centreX =
-        static_cast<float>(x) +
-        static_cast<float>(width) * 0.5f;
-
-    const float centreY =
-        static_cast<float>(y) +
-        static_cast<float>(height) * 0.5f;
-
-    const float knobRadius =
-        radius - 4.0f;
-
-    //==============================================================
-    // Outer shadow
-    //==============================================================
+    //==========================================================
+    // Outer dark ring
+    //==========================================================
 
     g.setColour(
-        juce::Colours::black.withAlpha(0.80f));
+        juce::Colour(15, 16, 18));
 
     g.fillEllipse(
-        centreX - knobRadius - 2.0f,
-        centreY - knobRadius + 3.0f,
-        (knobRadius + 2.0f) * 2.0f,
-        (knobRadius + 2.0f) * 2.0f);
+        cx - radius,
+        cy - radius,
+        radius * 2.0f,
+        radius * 2.0f);
 
-    //==============================================================
-    // Outer ring
-    //==============================================================
-
-    g.setColour(
-        juce::Colour(20, 20, 20));
-
-    g.fillEllipse(
-        centreX - knobRadius,
-        centreY - knobRadius,
-        knobRadius * 2.0f,
-        knobRadius * 2.0f);
-
-    //==============================================================
-    // Main knob
-    //==============================================================
+    //==========================================================
+    // Inner knob
+    //==========================================================
 
     const float innerRadius =
-        knobRadius - 5.0f;
+        radius * 0.82f;
 
     g.setColour(
-        juce::Colour(55, 55, 55));
+        juce::Colour(35, 37, 40));
 
     g.fillEllipse(
-        centreX - innerRadius,
-        centreY - innerRadius,
+        cx - innerRadius,
+        cy - innerRadius,
         innerRadius * 2.0f,
         innerRadius * 2.0f);
 
-    //==============================================================
-    // Highlight
-    //==============================================================
+    //==========================================================
+    // Active blue arc
+    //==========================================================
+
+    const float arcThickness =
+        juce::jmax(
+            3.0f,
+            size * 0.045f);
+
+    const float startAngle =
+        rotaryStartAngle;
+
+    const float endAngle =
+        rotaryStartAngle
+        + sliderPosProportional
+            * (rotaryEndAngle - rotaryStartAngle);
+
+    juce::Path arc;
+
+    arc.addCentredArc(
+        cx,
+        cy,
+        radius * 0.92f,
+        radius * 0.92f,
+        0.0f,
+        startAngle,
+        endAngle,
+        true);
 
     g.setColour(
-        juce::Colour(90, 90, 90));
+        juce::Colour(45, 130, 255));
 
-    g.drawEllipse(
-        centreX - innerRadius,
-        centreY - innerRadius,
-        innerRadius * 2.0f,
-        innerRadius * 2.0f,
-        1.5f);
+    g.strokePath(
+        arc,
+        juce::PathStrokeType(
+            arcThickness,
+            juce::PathStrokeType::curved,
+            juce::PathStrokeType::rounded));
 
-    //==============================================================
-    // Position indicator
-    //==============================================================
+    //==========================================================
+    // Indicator
+    //==========================================================
 
     const float angle =
-        rotaryStartAngle +
-        sliderPosProportional *
-        (rotaryEndAngle - rotaryStartAngle);
+        rotaryStartAngle
+        + sliderPosProportional
+            * (rotaryEndAngle - rotaryStartAngle);
 
-    const float indicatorRadius =
-        innerRadius - 8.0f;
+    const float indicatorLength =
+        radius * 0.58f;
 
     const float indicatorX =
-        centreX +
-        std::cos(angle) * indicatorRadius;
+        cx + std::cos(angle) * indicatorLength;
 
     const float indicatorY =
-        centreY +
-        std::sin(angle) * indicatorRadius;
+        cy + std::sin(angle) * indicatorLength;
 
     g.setColour(
         juce::Colours::white);
 
     g.drawLine(
-        centreX,
-        centreY,
+        cx,
+        cy,
         indicatorX,
         indicatorY,
-        3.0f);
-
-    //==============================================================
-    // Center
-    //==============================================================
-
-    g.setColour(
-        juce::Colour(25, 25, 25));
-
-    g.fillEllipse(
-        centreX - 6.0f,
-        centreY - 6.0f,
-        12.0f,
-        12.0f);
-
-    //==============================================================
-    // Active indicator arc
-    //==============================================================
-
-    juce::Path arc;
-
-    const float arcRadius =
-        knobRadius + 1.0f;
-
-    arc.addCentredArc(
-        centreX,
-        centreY,
-        arcRadius,
-        arcRadius,
-        0.0f,
-        rotaryStartAngle,
-        angle,
-        true);
-
-    g.setColour(
-        juce::Colour(80, 160, 255));
-
-    g.strokePath(
-        arc,
-        juce::PathStrokeType(
-            3.0f,
-            juce::PathStrokeType::curved,
-            juce::PathStrokeType::rounded));
+        juce::jmax(
+            2.0f,
+            size * 0.035f));
 }
 
-//==============================================================================
-// EDITOR
-//==============================================================================
-
-AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
-    AmpSimAudioProcessor& p)
-    : AudioProcessorEditor(&p),
-      audioProcessor(p)
-{
-    //==============================================================
-    // Load RG100 background
-    //==============================================================
-
-    backgroundImage =
-        juce::ImageCache::getFromMemory(
-            BinaryData::rg100jpg,
-            BinaryData::rg100jpgSize);
-
-    //==============================================================
-    // Plugin window
-    //==============================================================
-
-    setSize(800, 500);
-
-    setResizable(
-        true,
-        true);
-
-    //==============================================================
-    // GAIN
-    //==============================================================
-
-    setupKnob(
-        gainKnob,
-        gainLabel,
-        "GAIN");
-
-    //==============================================================
-    // BASS
-    //==============================================================
-
-    setupKnob(
-        bassKnob,
-        bassLabel,
-        "BASS");
-
-    //==============================================================
-    // MID
-    //==============================================================
-
-    setupKnob(
-        midKnob,
-        midLabel,
-        "MID");
-
-    //==============================================================
-    // HI
-    //==============================================================
-
-    setupKnob(
-        hiKnob,
-        hiLabel,
-        "HI");
-
-    //==============================================================
-    // VOLUME
-    //==============================================================
-
-    setupKnob(
-        volumeKnob,
-        volumeLabel,
-        "VOLUME");
-
-    //==============================================================
-    // Find processor parameters
-    //==============================================================
-
-    gainParameter =
-        findParameter("GAIN");
-
-    bassParameter =
-        findParameter("BASS");
-
-    midParameter =
-        findParameter("MID");
-
-    hiParameter =
-        findParameter("HI");
-
-    volumeParameter =
-        findParameter("VOLUME");
-
-    //==============================================================
-    // Connect knobs
-    //==============================================================
-
-    connectKnobToParameter(
-        gainKnob,
-        gainParameter,
-        "GAIN");
-
-    connectKnobToParameter(
-        bassKnob,
-        bassParameter,
-        "BASS");
-
-    connectKnobToParameter(
-        midKnob,
-        midParameter,
-        "MID");
-
-    connectKnobToParameter(
-        hiKnob,
-        hiParameter,
-        "HI");
-
-    connectKnobToParameter(
-        volumeKnob,
-        volumeParameter,
-        "VOLUME");
-}
-
-//==============================================================================
-AmpSimAudioProcessorEditor::~AmpSimAudioProcessorEditor()
-{
-}
-
-//==============================================================================
-// PAINT
-//==============================================================================
+//==============================================================
+// Paint
+//==============================================================
 
 void AmpSimAudioProcessorEditor::paint(
     juce::Graphics& g)
 {
-    //==============================================================
+    //==========================================================
     // Background image
-    //==============================================================
+    //==========================================================
 
     if (backgroundImage.isValid())
     {
-        g.drawImageWithin(
+        g.drawImage(
             backgroundImage,
-            0,
-            0,
-            getWidth(),
-            getHeight(),
-            juce::RectanglePlacement::stretchToFit,
-            false);
+            getLocalBounds().toFloat(),
+            juce::RectanglePlacement::stretchToFit);
     }
     else
     {
         g.fillAll(
-            juce::Colour(30, 30, 30));
+            juce::Colour(20, 20, 20));
     }
-
-    //==============================================================
-    // Very subtle overlay
-    //==============================================================
-
-    g.setColour(
-        juce::Colours::black.withAlpha(0.06f));
-
-    g.fillRect(
-        getLocalBounds());
-
-    //==============================================================
-    // Optional amplifier overlay
-    //==============================================================
-
-    drawAmplifierOverlay(g);
 }
 
-//==============================================================================
-// AMPLIFIER OVERLAY
-//==============================================================================
-
-void AmpSimAudioProcessorEditor::drawAmplifierOverlay(
-    juce::Graphics& g)
-{
-    const float scaleX =
-        static_cast<float>(getWidth()) /
-        referenceWidth;
-
-    const float scaleY =
-        static_cast<float>(getHeight()) /
-        referenceHeight;
-
-    //==============================================================
-    // Keep text extremely subtle because the JPG is the main UI.
-    //==============================================================
-
-    juce::ignoreUnused(scaleX);
-    juce::ignoreUnused(scaleY);
-}
-
-//==============================================================================
-// RESIZED
-//==============================================================================
+//==============================================================
+// Resized
+//==============================================================
 
 void AmpSimAudioProcessorEditor::resized()
 {
-    //==============================================================
-    // Scale reference 800x500 coordinates
-    //==============================================================
-
     const float scaleX =
-        static_cast<float>(getWidth()) /
-        referenceWidth;
+        static_cast<float>(getWidth())
+        / referenceWidth;
 
     const float scaleY =
-        static_cast<float>(getHeight()) /
-        referenceHeight;
+        static_cast<float>(getHeight())
+        / referenceHeight;
 
-    const int actualKnobSize =
-        static_cast<int>(
-            knobSize *
-            juce::jmin(scaleX, scaleY));
+    // Keep proportions based on the 800x500 design.
+    const float scale =
+        juce::jmin(scaleX, scaleY);
 
-    //==============================================================
-    // Helper
-    //==============================================================
+    const float offsetX =
+        (static_cast<float>(getWidth())
+         - referenceWidth * scale) * 0.5f;
 
-    auto positionKnob =
-        [&](juce::Slider& knob,
-            juce::Label& label,
-            float centreX,
-            float centreY)
+    const float offsetY =
+        (static_cast<float>(getHeight())
+         - referenceHeight * scale) * 0.5f;
+
+    auto placeKnob =
+        [scale, offsetX, offsetY](
+            juce::Slider& knob,
+            float centerX,
+            float centerY)
     {
-        const int x =
-            static_cast<int>(
-                centreX * scaleX -
-                actualKnobSize * 0.5f);
+        const float size =
+            knobSize * scale;
 
-        const int y =
-            static_cast<int>(
-                centreY * scaleY -
-                actualKnobSize * 0.5f);
+        const float x =
+            offsetX
+            + centerX * scale
+            - size * 0.5f;
+
+        const float y =
+            offsetY
+            + centerY * scale
+            - size * 0.5f;
 
         knob.setBounds(
-            x,
-            y,
-            actualKnobSize,
-            actualKnobSize);
-
-        const int labelWidth =
-            static_cast<int>(
-                90.0f * scaleX);
-
-        const int labelHeight =
-            static_cast<int>(
-                22.0f * scaleY);
-
-        label.setBounds(
-            static_cast<int>(
-                centreX * scaleX -
-                labelWidth * 0.5f),
-            y + actualKnobSize + 2,
-            labelWidth,
-            labelHeight);
+            juce::roundToInt(x),
+            juce::roundToInt(y),
+            juce::roundToInt(size),
+            juce::roundToInt(size));
     };
 
-    //==============================================================
-    // EXACT REFERENCE COORDINATES
-    //==============================================================
-
-    positionKnob(
+    placeKnob(
         gainKnob,
+        gainX,
+        knobY);
+
+    placeKnob(
+        bassKnob,
+        bassX,
+        knobY);
+
+    placeKnob(
+        midKnob,
+        midX,
+        knobY);
+
+    placeKnob(
+        hiKnob,
+        hiX,
+        knobY);
+
+    placeKnob(
+        volumeKnob,
+        volumeX,
+        knobY);
+
+    //==========================================================
+    // Labels
+    //==========================================================
+
+    auto placeLabel =
+        [scale, offsetX, offsetY](
+            juce::Label& label,
+            float centerX,
+            float centerY)
+    {
+        const float width =
+            90.0f * scale;
+
+        const float height =
+            22.0f * scale;
+
+        const float x =
+            offsetX
+            + centerX * scale
+            - width * 0.5f;
+
+        const float y =
+            offsetY
+            + centerY * scale
+            + labelOffset * scale;
+
+        label.setBounds(
+            juce::roundToInt(x),
+            juce::roundToInt(y),
+            juce::roundToInt(width),
+            juce::roundToInt(height));
+
+        label.setFont(
+            juce::Font(
+                juce::jmax(
+                    10.0f,
+                    14.0f * scale),
+                juce::Font::bold));
+    };
+
+    placeLabel(
         gainLabel,
         gainX,
         knobY);
 
-    positionKnob(
-        bassKnob,
+    placeLabel(
         bassLabel,
         bassX,
         knobY);
 
-    positionKnob(
-        midKnob,
+    placeLabel(
         midLabel,
         midX,
         knobY);
 
-    positionKnob(
-        hiKnob,
+    placeLabel(
         hiLabel,
         hiX,
         knobY);
 
-    positionKnob(
-        volumeKnob,
+    placeLabel(
         volumeLabel,
         volumeX,
         knobY);
-}
-
-//==============================================================================
-// SETUP KNOB
-//==============================================================================
-
-void AmpSimAudioProcessorEditor::setupKnob(
-    juce::Slider& knob,
-    juce::Label& label,
-    const juce::String& text)
-{
-    addAndMakeVisible(knob);
-    addAndMakeVisible(label);
-
-    //==============================================================
-    // Rotary
-    //==============================================================
-
-    knob.setSliderStyle(
-        juce::Slider::RotaryHorizontalVerticalDrag);
-
-    knob.setRotaryParameters(
-        rotaryStart,
-        rotaryEnd,
-        true);
-
-    knob.setTextBoxStyle(
-        juce::Slider::NoTextBox,
-        false,
-        0,
-        0);
-
-    knob.setRange(
-        0.0,
-        1.0,
-        0.001);
-
-    knob.setValue(
-        0.5,
-        juce::dontSendNotification);
-
-    knob.setLookAndFeel(
-        &knobLookAndFeel);
-
-    //==============================================================
-    // Label
-    //==============================================================
-
-    label.setText(
-        text,
-        juce::dontSendNotification);
-
-    label.setFont(
-        juce::FontOptions(12.0f)
-            .withStyle("bold"));
-
-    label.setColour(
-        juce::Label::textColourId,
-        juce::Colours::white);
-
-    label.setJustificationType(
-        juce::Justification::centred);
-}
-
-//==============================================================================
-// FIND PARAMETER
-//==============================================================================
-
-juce::AudioProcessorParameter*
-AmpSimAudioProcessorEditor::findParameter(
-    const juce::String& parameterName)
-{
-    for (auto* parameter :
-         audioProcessor.getParameters())
-    {
-        if (parameter == nullptr)
-            continue;
-
-        const auto name =
-            parameter->getName(100);
-
-        if (name.equalsIgnoreCase(parameterName))
-            return parameter;
-
-        // Also accept names such as:
-        // "Gain", "Amp Gain", "GAIN"
-        if (name.containsIgnoreCase(parameterName))
-            return parameter;
-    }
-
-    return nullptr;
-}
-
-//==============================================================================
-// CONNECT KNOB
-//==============================================================================
-
-void AmpSimAudioProcessorEditor::connectKnobToParameter(
-    juce::Slider& knob,
-    juce::AudioProcessorParameter*& parameter,
-    const juce::String& parameterName)
-{
-    if (parameter == nullptr)
-    {
-        // Parameter does not exist yet.
-        // The knob remains usable as a UI control.
-        knob.setValue(
-            0.5,
-            juce::dontSendNotification);
-
-        knob.onValueChange = [&knob]
-        {
-            juce::ignoreUnused(knob);
-        };
-
-        return;
-    }
-
-    //==============================================================
-    // Set knob from processor parameter
-    //==============================================================
-
-    updateKnobFromParameter(
-        knob,
-        parameter);
-
-    //==============================================================
-    // Send knob changes to processor
-    //==============================================================
-
-    knob.onValueChange =
-        [this, &knob, parameter]
-    {
-        knobChanged(
-            knob,
-            parameter);
-    };
-
-    juce::ignoreUnused(parameterName);
-}
-
-//==============================================================================
-// UPDATE KNOB FROM PARAMETER
-//==============================================================================
-
-void AmpSimAudioProcessorEditor::updateKnobFromParameter(
-    juce::Slider& knob,
-    juce::AudioProcessorParameter* parameter)
-{
-    if (parameter == nullptr)
-        return;
-
-    const float normalized =
-        parameter->getValue();
-
-    knob.setValue(
-        juce::jlimit(
-            0.0,
-            1.0,
-            static_cast<double>(normalized)),
-        juce::dontSendNotification);
-}
-
-//==============================================================================
-// KNOB CHANGED
-//==============================================================================
-
-void AmpSimAudioProcessorEditor::knobChanged(
-    juce::Slider& knob,
-    juce::AudioProcessorParameter* parameter)
-{
-    if (parameter == nullptr)
-        return;
-
-    const float normalized =
-        static_cast<float>(
-            juce::jlimit(
-                0.0,
-                1.0,
-                knob.getValue()));
-
-    parameter->setValueNotifyingHost(
-        normalized);
 }
