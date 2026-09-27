@@ -32,6 +32,22 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(NeuralAudio)
 
 #==============================================================
+# Find NeuralAudio headers
+#==============================================================
+
+file(GLOB_RECURSE NEURAL_AUDIO_HEADERS
+    "${neuralaudio_SOURCE_DIR}/*.h"
+)
+
+message(STATUS "==========================================")
+message(STATUS "NeuralAudio source: ${neuralaudio_SOURCE_DIR}")
+message(STATUS "NeuralAudio headers:")
+foreach(HEADER ${NEURAL_AUDIO_HEADERS})
+    message(STATUS "  ${HEADER}")
+endforeach()
+message(STATUS "==========================================")
+
+#==============================================================
 # Binary Assets
 #==============================================================
 
@@ -85,6 +101,7 @@ target_include_directories(
         ${neuralaudio_SOURCE_DIR}
         ${neuralaudio_SOURCE_DIR}/NeuralAudio
         ${neuralaudio_SOURCE_DIR}/include
+        ${neuralaudio_SOURCE_DIR}/src
 )
 
 #==============================================================
