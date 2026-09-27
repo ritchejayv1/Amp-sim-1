@@ -1,7 +1,9 @@
-
 #pragma once
 
 #include <JuceHeader.h>
+
+// NeuralAudio
+#include <NeuralAudio.h>
 
 class AmpSimAudioProcessor : public juce::AudioProcessor
 {
@@ -59,6 +61,28 @@ public:
 private:
 
     //==============================================================
+    // NAM
+    //==============================================================
+
+    std::unique_ptr<NeuralAudio::NeuralModelLoader> namLoader;
+
+    std::unique_ptr<NeuralAudio::NeuralModel> namModel;
+
+    juce::File namTempFile;
+
+    bool namLoaded = false;
+
+    //==============================================================
+    // IR
+    //==============================================================
+
+    juce::dsp::Convolution irConvolution;
+
+    juce::File irTempFile;
+
+    bool irLoaded = false;
+
+    //==============================================================
     // DSP
     //==============================================================
 
@@ -70,14 +94,36 @@ private:
     juce::dsp::IIR::Filter<float> highFilter;
 
     //==============================================================
+    // NAM buffers
+    //==============================================================
+
+    juce::AudioBuffer<float> namInputBuffer;
+    juce::AudioBuffer<float> namOutputBuffer;
+
+    std::vector<float> namInputData;
+    std::vector<float> namOutputData;
+
+    //==============================================================
     // Parameters
     //==============================================================
 
-    std::atomic<float>* gainParameter  = nullptr;
-    std::atomic<float>* bassParameter  = nullptr;
-    std::atomic<float>* midParameter   = nullptr;
-    std::atomic<float>* highParameter  = nullptr;
+    std::atomic<float>* gainParameter   = nullptr;
+    std::atomic<float>* bassParameter   = nullptr;
+    std::atomic<float>* midParameter    = nullptr;
+    std::atomic<float>* highParameter   = nullptr;
     std::atomic<float>* volumeParameter = nullptr;
+
+    //==============================================================
+    // Helpers
+    //==============================================================
+
+    bool createEmbeddedNAMFile();
+
+    bool createEmbeddedIRFile();
+
+    bool loadNAM();
+
+    bool loadIR();
 
     //==============================================================
 
