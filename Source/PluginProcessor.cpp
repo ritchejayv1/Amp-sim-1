@@ -126,8 +126,8 @@ AmpSimAudioProcessor::createParameterLayout()
     //==========================================================================
     // VOLUME
     //
-    // 0  = COMPLETE MUTE
-    // 50 = FULL VOLUME
+    // 0   = COMPLETE MUTE
+    // 100 = FULL VOLUME
     //==========================================================================
 
     params.push_back(
@@ -136,9 +136,9 @@ AmpSimAudioProcessor::createParameterLayout()
             "Volume",
             juce::NormalisableRange<float>(
                 0.0f,
-                50.0f,
+                100.0f,
                 0.01f),
-            50.0f));
+            100.0f));
 
     return { params.begin(), params.end() };
 }
@@ -470,14 +470,12 @@ void AmpSimAudioProcessor::processBlock(
             : 0.0f;
 
     *bassFilter.coefficients =
-        *juce::dsp::IIR::Coefficients<float>::
-            makeLowShelf(
-                currentSampleRate,
-                120.0,
-                0.7071f,
-                juce::Decibels::
-                    decibelsToGain(
-                        bassValue));
+        *juce::dsp::IIR::Coefficients<float>::makeLowShelf(
+            currentSampleRate,
+            120.0,
+            0.7071f,
+            juce::Decibels::decibelsToGain(
+                bassValue));
 
     {
         juce::dsp::AudioBlock<float>
@@ -501,14 +499,12 @@ void AmpSimAudioProcessor::processBlock(
             : 0.0f;
 
     *midFilter.coefficients =
-        *juce::dsp::IIR::Coefficients<float>::
-            makePeakFilter(
-                currentSampleRate,
-                750.0,
-                0.8f,
-                juce::Decibels::
-                    decibelsToGain(
-                        midValue));
+        *juce::dsp::IIR::Coefficients<float>::makePeakFilter(
+            currentSampleRate,
+            750.0,
+            0.8f,
+            juce::Decibels::decibelsToGain(
+                midValue));
 
     {
         juce::dsp::AudioBlock<float>
@@ -532,14 +528,12 @@ void AmpSimAudioProcessor::processBlock(
             : 0.0f;
 
     *highFilter.coefficients =
-        *juce::dsp::IIR::Coefficients<float>::
-            makeHighShelf(
-                currentSampleRate,
-                4500.0,
-                0.7071f,
-                juce::Decibels::
-                    decibelsToGain(
-                        highValue));
+        *juce::dsp::IIR::Coefficients<float>::makeHighShelf(
+            currentSampleRate,
+            4500.0,
+            0.7071f,
+            juce::Decibels::decibelsToGain(
+                highValue));
 
     {
         juce::dsp::AudioBlock<float>
@@ -573,29 +567,20 @@ void AmpSimAudioProcessor::processBlock(
     //==========================================================================
     // 8. OUTPUT VOLUME
     //
-    // 0  = COMPLETE MUTE
-    // 50 = FULL VOLUME
+    // 0   = COMPLETE MUTE
+    // 100 = FULL VOLUME
     //==========================================================================
 
     const float volumeValue =
         volumeParameter != nullptr
             ? volumeParameter->load()
-            : 50.0f;
-
-    //--------------------------------------------------------------------------
-    // Convert 0-50 knob position
-    // to 0.0-1.0 linear gain.
-    //--------------------------------------------------------------------------
+            : 100.0f;
 
     const float volumeLinear =
         juce::jlimit(
             0.0f,
             1.0f,
-            volumeValue / 50.0f);
-
-    //--------------------------------------------------------------------------
-    // Apply linear output gain
-    //--------------------------------------------------------------------------
+            volumeValue / 100.0f);
 
     outputGain.setGainLinear(
         volumeLinear);
@@ -650,11 +635,10 @@ bool AmpSimAudioProcessor::createEmbeddedNAMFile()
     }
 
     namTempFile =
-        juce::File::
-            getSpecialLocation(
-                juce::File::tempDirectory)
-            .getChildFile(
-                "RG_MBDR_precision.nam");
+        juce::File::getSpecialLocation(
+            juce::File::tempDirectory)
+        .getChildFile(
+            "RG_MBDR_precision.nam");
 
     if (namTempFile.existsAsFile())
         namTempFile.deleteFile();
@@ -685,11 +669,10 @@ bool AmpSimAudioProcessor::createEmbeddedIRFile()
     }
 
     irTempFile =
-        juce::File::
-            getSpecialLocation(
-                juce::File::tempDirectory)
-            .getChildFile(
-                "RG_412_MB_mic_1.wav");
+        juce::File::getSpecialLocation(
+            juce::File::tempDirectory)
+        .getChildFile(
+            "RG_412_MB_mic_1.wav");
 
     if (irTempFile.existsAsFile())
         irTempFile.deleteFile();
