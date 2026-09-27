@@ -248,7 +248,7 @@ void AmpSimAudioProcessorEditor::setupLabel(
 
     label.setFont(
         juce::Font(
-            13.0f,
+            12.0f,
             juce::Font::bold));
 
     addAndMakeVisible(
@@ -327,7 +327,7 @@ void AmpSimAudioProcessorEditor::resized()
 
     const int knobSize =
         static_cast<int>(
-            76.0f * scale);
+            50.0f * scale);
 
     //==============================================================
     // KNOB POSITION
@@ -413,9 +413,19 @@ void AmpSimAudioProcessorEditor::resized()
         static_cast<int>(
             20.0f * scale);
 
+    //==============================================================
+    // LABEL POSITION
+    //
+    // Knob center = 330
+    // Knob size   = 50
+    // Knob top    = 305
+    //
+    // Label placed above knob.
+    //==============================================================
+
     const int labelY =
         static_cast<int>(
-            374.0f * scale);
+            282.0f * scale);
 
     //==============================================================
     // LABEL POSITION
