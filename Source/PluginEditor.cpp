@@ -248,7 +248,7 @@ void AmpSimAudioProcessorEditor::setupLabel(
 
     label.setFont(
         juce::Font(
-            12.0f,
+            10.0f,
             juce::Font::bold));
 
     addAndMakeVisible(
@@ -262,10 +262,6 @@ void AmpSimAudioProcessorEditor::setupLabel(
 void AmpSimAudioProcessorEditor::paint(
     juce::Graphics& g)
 {
-    //==============================================================
-    // RG100 IMAGE
-    //==============================================================
-
     if (backgroundImage.isValid())
     {
         g.drawImage(
@@ -275,10 +271,6 @@ void AmpSimAudioProcessorEditor::paint(
     }
     else
     {
-        //==========================================================
-        // Fallback
-        //==========================================================
-
         g.fillAll(
             juce::Colour(
                 20,
@@ -294,16 +286,13 @@ void AmpSimAudioProcessorEditor::paint(
 void AmpSimAudioProcessorEditor::resized()
 {
     //==============================================================
-    // ORIGINAL REFERENCE
+    // 800 x 500 REFERENCE
     //
-    // 800 x 500
-    //
-    // GAIN    184,330
-    // BASS    292,330
-    // MID     400,330
-    // HI      508,330
-    // VOLUME  616,330
-    //
+    // GAIN    200,330
+    // BASS    295,330
+    // MID     390,330
+    // HI      485,330
+    // VOLUME  580,330
     //==============================================================
 
     const float scaleX =
@@ -327,7 +316,7 @@ void AmpSimAudioProcessorEditor::resized()
 
     const int knobSize =
         static_cast<int>(
-            50.0f * scale);
+            45.0f * scale);
 
     //==============================================================
     // KNOB POSITION
@@ -356,49 +345,29 @@ void AmpSimAudioProcessorEditor::resized()
                 knobSize);
         };
 
-    //==============================================================
-    // GAIN
-    //==============================================================
-
     setKnobPosition(
         gainKnob,
-        184.0f,
+        200.0f,
         330.0f);
-
-    //==============================================================
-    // BASS
-    //==============================================================
 
     setKnobPosition(
         bassKnob,
-        292.0f,
+        295.0f,
         330.0f);
-
-    //==============================================================
-    // MID
-    //==============================================================
 
     setKnobPosition(
         midKnob,
-        400.0f,
+        390.0f,
         330.0f);
-
-    //==============================================================
-    // HI
-    //==============================================================
 
     setKnobPosition(
         hiKnob,
-        508.0f,
+        485.0f,
         330.0f);
-
-    //==============================================================
-    // VOLUME
-    //==============================================================
 
     setKnobPosition(
         volumeKnob,
-        616.0f,
+        580.0f,
         330.0f);
 
     //==============================================================
@@ -407,29 +376,19 @@ void AmpSimAudioProcessorEditor::resized()
 
     const int labelWidth =
         static_cast<int>(
-            86.0f * scale);
+            75.0f * scale);
 
     const int labelHeight =
         static_cast<int>(
-            20.0f * scale);
+            16.0f * scale);
 
     //==============================================================
     // LABEL POSITION
-    //
-    // Knob center = 330
-    // Knob size   = 50
-    // Knob top    = 305
-    //
-    // Label placed above knob.
     //==============================================================
 
     const int labelY =
         static_cast<int>(
-            282.0f * scale);
-
-    //==============================================================
-    // LABEL POSITION
-    //==============================================================
+            291.0f * scale);
 
     auto setLabelPosition =
         [scale,
@@ -451,29 +410,25 @@ void AmpSimAudioProcessorEditor::resized()
                 labelHeight);
         };
 
-    //==============================================================
-    // LABELS
-    //==============================================================
-
     setLabelPosition(
         gainLabel,
-        184.0f);
+        200.0f);
 
     setLabelPosition(
         bassLabel,
-        292.0f);
+        295.0f);
 
     setLabelPosition(
         midLabel,
-        400.0f);
+        390.0f);
 
     setLabelPosition(
         hiLabel,
-        508.0f);
+        485.0f);
 
     setLabelPosition(
         volumeLabel,
-        616.0f);
+        580.0f);
 }
 
 //==============================================================================
@@ -492,7 +447,7 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
     juce::Slider&)
 {
     //==============================================================
-    // Radius
+    // RADIUS
     //==============================================================
 
     const float radius =
@@ -505,7 +460,7 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
         - 5.0f;
 
     //==============================================================
-    // Center
+    // CENTER
     //==============================================================
 
     const float centreX =
@@ -519,7 +474,7 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
           * 0.5f;
 
     //==============================================================
-    // Pointer angle
+    // POINTER ANGLE
     //==============================================================
 
     const float angle =
@@ -529,14 +484,11 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
              rotaryStartAngle);
 
     //==============================================================
-    // OUTER KNOB
+    // WHITE KNOB
     //==============================================================
 
     g.setColour(
-        juce::Colour(
-            18,
-            18,
-            18));
+        juce::Colours::white);
 
     g.fillEllipse(
         centreX - radius,
@@ -545,14 +497,14 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
         radius * 2.0f);
 
     //==============================================================
-    // OUTER RING
+    // DARK OUTER RING
     //==============================================================
 
     g.setColour(
         juce::Colour(
-            80,
-            80,
-            80));
+            60,
+            60,
+            60));
 
     g.drawEllipse(
         centreX - radius,
@@ -562,7 +514,7 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
         2.0f);
 
     //==============================================================
-    // POINTER
+    // BLACK POINTER
     //==============================================================
 
     const float pointerLength =
@@ -581,7 +533,7 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
         1.5f);
 
     g.setColour(
-        juce::Colours::white);
+        juce::Colours::black);
 
     g.fillPath(
         pointer,
@@ -591,23 +543,4 @@ void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
             .translated(
                 centreX,
                 centreY));
-
-    //==============================================================
-    // CENTER
-    //==============================================================
-
-    const float centerRadius =
-        radius * 0.12f;
-
-    g.setColour(
-        juce::Colour(
-            45,
-            45,
-            45));
-
-    g.fillEllipse(
-        centreX - centerRadius,
-        centreY - centerRadius,
-        centerRadius * 2.0f,
-        centerRadius * 2.0f);
 }
