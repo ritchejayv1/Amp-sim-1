@@ -1,54 +1,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-
 #include "BinaryData.h"
 
 #include <cmath>
-
-//==============================================================================
-// Temporary extracted filenames
-//==============================================================================
-
-namespace
-{
-    constexpr const char* tempNAMName =
-        "RG_AmpSim_Internal_Model.nam";
-
-    constexpr const char* tempIRName =
-        "RG_AmpSim_Internal_IR.wav";
-
-    //==========================================================================
-    // Try several possible JUCE BinaryData resource names.
-    //
-    // This avoids directly referencing a generated C++ symbol whose exact
-    // name can change depending on JUCE's resource-name sanitisation.
-    //==========================================================================
-
-    const void* findEmbeddedResource(
-        const char* const* names,
-        int numberOfNames,
-        int& dataSize)
-    {
-        dataSize = 0;
-
-        for (int i = 0; i < numberOfNames; ++i)
-        {
-            const void* data =
-                BinaryData::getNamedResource(
-                    names[i],
-                    dataSize);
-
-            if (data != nullptr &&
-                dataSize > 0)
-            {
-                return data;
-            }
-        }
-
-        dataSize = 0;
-        return nullptr;
-    }
-}
 
 //==============================================================================
 // Constructor
@@ -61,22 +15,16 @@ AmpSimAudioProcessor::AmpSimAudioProcessor()
                 "Input",
                 juce::AudioChannelSet::stereo(),
                 true)
-
             .withOutput(
                 "Output",
                 juce::AudioChannelSet::stereo(),
                 true)),
-
       parameters(
           *this,
           nullptr,
           "PARAMETERS",
           createParameterLayout())
 {
-    //==============================================================
-    // Parameter pointers
-    //==============================================================
-
     gainParameter =
         parameters.getRawParameterValue("GAIN");
 
@@ -93,71 +41,83 @@ AmpSimAudioProcessor::AmpSimAudioProcessor()
         parameters.getRawParameterValue("VOLUME");
 
     //==============================================================
-    // NeuralAudio loader
+    // Extract embedded NAM
     //==============================================================
-
-    namLoader =
-        std::make_unique<
-            NeuralAudio::NeuralModelLoader>();
-
-    //==============================================================
-    // Temporary files
-    //==============================================================
-
-    const auto tempDirectory =
-        juce::File::getSpecialLocation(
-            juce::File::tempDirectory);
 
     namTempFile =
-        tempDirectory.getChildFile(
-            tempNAMName);
+        juce::File::getSpecialLocation(
+            juce::File::tempDirectory)
+            .getChildFile("RG_AmpSim_Internal_Model.nam");
+
+    if (namTempFile.replaceWithData(
+            BinaryData::RG_MBDRprecision_nam,
+            static_cast<size_t>(
+                BinaryData::RG_MBDRprecision_namSize)))
+    {
+        DBG("RG Amp SIM: Embedded NAM extracted.");
+        DBG("NAM size: "
+            + juce::String(BinaryData::RG_MBDRprecision_namSize));
+    }
+    else
+    {
+        DBG("RG Amp SIM: FAILED to extract NAM.");
+    }
+
+    //==============================================================
+    // Extract embedded IR
+    //==============================================================
 
     irTempFile =
-        tempDirectory.getChildFile(
-            tempIRName);
+        juce::File::getSpecialLocation(
+            juce::File::tempDirectory)
+            .getChildFile("RG_AmpSim_Internal_IR.wav");
 
-    //==============================================================
-    // Extract embedded assets
-    //==============================================================
-
-    const bool namExtracted =
-        createEmbeddedNAMFile();
-
-    const bool irExtracted =
-        createEmbeddedIRFile();
+    if (irTempFile.replaceWithData(
+            BinaryData::RG_412_MB_mic_1_wav,
+            static_cast<size_t>(
+                BinaryData::RG_412_MB_mic_1_wavSize)))
+    {
+        DBG("RG Amp SIM: Embedded IR extracted.");
+        DBG("IR size: "
+            + juce::String(BinaryData::RG_412_MB_mic_1_wavSize));
+    }
+    else
+    {
+        DBG("RG Amp SIM: FAILED to extract IR.");
+    }
 
     //==============================================================
     // Load NAM
     //==============================================================
 
-    if (namExtracted)
-        loadNAM();
+    namLoaded = loadNAM();
+
+    if (namLoaded)
+        DBG("RG Amp SIM: NAM LOAD SUCCESS.");
+    else
+        DBG("RG Amp SIM: NAM LOAD FAILED.");
 
     //==============================================================
     // Load IR
     //==============================================================
 
-    if (irExtracted)
-        loadIR();
+    irLoaded = loadIR();
+
+    if (irLoaded)
+        DBG("RG Amp SIM: IR LOAD SUCCESS.");
+    else
+        DBG("RG Amp SIM: IR LOAD FAILED.");
 }
 
-//==============================================================================
-// Destructor
 //==============================================================================
 
 AmpSimAudioProcessor::~AmpSimAudioProcessor()
 {
     namModel.reset();
-
     namLoader.reset();
 
-    irConvolution.reset();
-
-    if (namTempFile.existsAsFile())
-        namTempFile.deleteFile();
-
-    if (irTempFile.existsAsFile())
-        irTempFile.deleteFile();
+    namTempFile.deleteFile();
+    irTempFile.deleteFile();
 }
 
 //==============================================================================
@@ -167,526 +127,284 @@ AmpSimAudioProcessor::~AmpSimAudioProcessor()
 juce::AudioProcessorValueTreeState::ParameterLayout
 AmpSimAudioProcessor::createParameterLayout()
 {
-    std::vector<
-        std::unique_ptr<
-            juce::RangedAudioParameter>>
-        params;
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
-    //==============================================================
     // GAIN
-    //==============================================================
-
     params.push_back(
-        std::make_unique<
-            juce::AudioParameterFloat>(
-                "GAIN",
-                "Gain",
+        std::make_unique<juce::AudioParameterFloat>(
+            "GAIN",
+            "Gain",
+            juce::NormalisableRange<float>(
+                0.0f,
+                10.0f,
+                0.01f),
+            5.0f));
 
-                juce::NormalisableRange<float>(
-                    0.0f,
-                    10.0f,
-                    0.01f),
-
-                5.0f));
-
-    //==============================================================
     // BASS
-    //==============================================================
-
     params.push_back(
-        std::make_unique<
-            juce::AudioParameterFloat>(
-                "BASS",
-                "Bass",
+        std::make_unique<juce::AudioParameterFloat>(
+            "BASS",
+            "Bass",
+            juce::NormalisableRange<float>(
+                -12.0f,
+                12.0f,
+                0.01f),
+            0.0f));
 
-                juce::NormalisableRange<float>(
-                    -12.0f,
-                    12.0f,
-                    0.01f),
-
-                0.0f,
-
-                "dB"));
-
-    //==============================================================
     // MID
-    //==============================================================
-
     params.push_back(
-        std::make_unique<
-            juce::AudioParameterFloat>(
-                "MID",
-                "Mid",
+        std::make_unique<juce::AudioParameterFloat>(
+            "MID",
+            "Mid",
+            juce::NormalisableRange<float>(
+                -12.0f,
+                12.0f,
+                0.01f),
+            0.0f));
 
-                juce::NormalisableRange<float>(
-                    -12.0f,
-                    12.0f,
-                    0.01f),
-
-                0.0f,
-
-                "dB"));
-
-    //==============================================================
-    // HIGH
-    //==============================================================
-
+    // HI
     params.push_back(
-        std::make_unique<
-            juce::AudioParameterFloat>(
-                "HI",
-                "High",
+        std::make_unique<juce::AudioParameterFloat>(
+            "HI",
+            "High",
+            juce::NormalisableRange<float>(
+                -12.0f,
+                12.0f,
+                0.01f),
+            0.0f));
 
-                juce::NormalisableRange<float>(
-                    -12.0f,
-                    12.0f,
-                    0.01f),
-
-                0.0f,
-
-                "dB"));
-
-    //==============================================================
     // VOLUME
-    //==============================================================
-
     params.push_back(
-        std::make_unique<
-            juce::AudioParameterFloat>(
-                "VOLUME",
-                "Volume",
+        std::make_unique<juce::AudioParameterFloat>(
+            "VOLUME",
+            "Volume",
+            juce::NormalisableRange<float>(
+                -24.0f,
+                12.0f,
+                0.01f),
+            0.0f));
 
-                juce::NormalisableRange<float>(
-                    -24.0f,
-                    12.0f,
-                    0.01f),
-
-                0.0f,
-
-                "dB"));
-
-    return
-    {
-        params.begin(),
-        params.end()
-    };
+    return { params.begin(), params.end() };
 }
 
 //==============================================================================
-// Create Embedded NAM File
-//==============================================================================
-
-bool AmpSimAudioProcessor::createEmbeddedNAMFile()
-{
-    //==============================================================
-    // Possible JUCE resource names.
-    //
-    // Original asset:
-    //
-    // RG MBDR+precision.nam
-    //
-    //==============================================================
-
-    const char* names[] =
-    {
-        "RG_MBDR_precision_nam",
-        "RG_MBDR_precision",
-        "RGMBDRprecision_nam",
-        "RGMBDRprecision"
-    };
-
-    int dataSize = 0;
-
-    const void* data =
-        findEmbeddedResource(
-            names,
-            static_cast<int>(
-                sizeof(names) / sizeof(names[0])),
-            dataSize);
-
-    //==============================================================
-    // Asset not found
-    //==============================================================
-
-    if (data == nullptr ||
-        dataSize <= 0)
-    {
-        namLoaded = false;
-        return false;
-    }
-
-    //==============================================================
-    // Delete old temporary file
-    //==============================================================
-
-    if (namTempFile.existsAsFile())
-        namTempFile.deleteFile();
-
-    //==============================================================
-    // Extract NAM
-    //==============================================================
-
-    const bool written =
-        namTempFile.replaceWithData(
-            data,
-            static_cast<size_t>(
-                dataSize));
-
-    if (!written)
-    {
-        namLoaded = false;
-        return false;
-    }
-
-    return true;
-}
-
-//==============================================================================
-// Create Embedded IR File
-//==============================================================================
-
-bool AmpSimAudioProcessor::createEmbeddedIRFile()
-{
-    //==============================================================
-    // Possible JUCE resource names.
-    //
-    // Original asset:
-    //
-    // RG 412 MB mic 1.wav
-    //
-    //==============================================================
-
-    const char* names[] =
-    {
-        "RG_412_MB_mic_1_wav",
-        "RG_412_MB_mic_1",
-        "RG_412_MB_mic_1wav",
-        "RG412MBmic1_wav",
-        "RG412MBmic1"
-    };
-
-    int dataSize = 0;
-
-    const void* data =
-        findEmbeddedResource(
-            names,
-            static_cast<int>(
-                sizeof(names) / sizeof(names[0])),
-            dataSize);
-
-    //==============================================================
-    // Asset not found
-    //==============================================================
-
-    if (data == nullptr ||
-        dataSize <= 0)
-    {
-        irLoaded = false;
-        return false;
-    }
-
-    //==============================================================
-    // Delete old temporary file
-    //==============================================================
-
-    if (irTempFile.existsAsFile())
-        irTempFile.deleteFile();
-
-    //==============================================================
-    // Extract WAV
-    //==============================================================
-
-    const bool written =
-        irTempFile.replaceWithData(
-            data,
-            static_cast<size_t>(
-                dataSize));
-
-    if (!written)
-    {
-        irLoaded = false;
-        return false;
-    }
-
-    return true;
-}
-
-//==============================================================================
-// Load NAM
-//==============================================================================
-
-bool AmpSimAudioProcessor::loadNAM()
-{
-    namLoaded = false;
-
-    if (!namLoader)
-        return false;
-
-    if (!namTempFile.existsAsFile())
-        return false;
-
-    //==============================================================
-    // NeuralAudio buffer configuration
-    //==============================================================
-
-    namLoader->SetDefaultMaxAudioBufferSize(
-        2048);
-
-    //==============================================================
-    // Remove old model
-    //==============================================================
-
-    namModel.reset();
-
-    //==============================================================
-    // Load NAM model
-    //==============================================================
-
-    namModel =
-        std::unique_ptr<
-            NeuralAudio::NeuralModel>(
-                namLoader->CreateFromFile(
-                    namTempFile
-                        .getFullPathName()
-                        .toStdString()));
-
-    if (namModel == nullptr)
-    {
-        namLoaded = false;
-        return false;
-    }
-
-    namLoaded = true;
-
-    return true;
-}
-
-//==============================================================================
-// Load IR
-//==============================================================================
-
-bool AmpSimAudioProcessor::loadIR()
-{
-    irLoaded = false;
-
-    if (!irTempFile.existsAsFile())
-        return false;
-
-    irLoaded = true;
-
-    return true;
-}
-
-//==============================================================================
-// Prepare To Play
+// Prepare
 //==============================================================================
 
 void AmpSimAudioProcessor::prepareToPlay(
     double sampleRate,
     int samplesPerBlock)
 {
-    //==============================================================
-    // DSP specification
-    //==============================================================
-
-    juce::dsp::ProcessSpec spec;
-
-    spec.sampleRate =
-        sampleRate;
-
-    spec.maximumBlockSize =
-        static_cast<juce::uint32>(
-            samplesPerBlock);
-
-    spec.numChannels =
-        static_cast<juce::uint32>(
-            getTotalNumOutputChannels());
+    DBG("RG Amp SIM: prepareToPlay");
+    DBG("Sample rate: " + juce::String(sampleRate));
+    DBG("Block size: " + juce::String(samplesPerBlock));
 
     //==============================================================
-    // INPUT GAIN
+    // NAM buffer sizes
     //==============================================================
 
-    inputGain.prepare(spec);
+    namInputBuffer.setSize(
+        1,
+        samplesPerBlock);
 
-    inputGain.setRampDurationSeconds(
-        0.02);
+    namOutputBuffer.setSize(
+        1,
+        samplesPerBlock);
 
-    inputGain.setGainDecibels(
-        0.0f);
+    namInputData.resize(
+        static_cast<size_t>(samplesPerBlock));
 
-    //==============================================================
-    // OUTPUT VOLUME
-    //==============================================================
-
-    outputGain.prepare(spec);
-
-    outputGain.setRampDurationSeconds(
-        0.02);
-
-    outputGain.setGainDecibels(
-        0.0f);
+    namOutputData.resize(
+        static_cast<size_t>(samplesPerBlock));
 
     //==============================================================
-    // EQ
+    // NAM sample-rate configuration
     //==============================================================
 
-    bassFilter.prepare(spec);
-    midFilter.prepare(spec);
-    highFilter.prepare(spec);
+    if (namLoader != nullptr)
+    {
+        namLoader->SetExternalSampleRate(sampleRate);
+    }
+
+    if (namModel != nullptr)
+    {
+        namModel->SetMaxAudioBufferSize(samplesPerBlock);
+    }
+
+    //==============================================================
+    // Input gain
+    //==============================================================
+
+    inputGain.prepare(
+        juce::dsp::ProcessSpec{
+            sampleRate,
+            static_cast<juce::uint32>(samplesPerBlock),
+            2
+        });
+
+    //==============================================================
+    // Output gain
+    //==============================================================
+
+    outputGain.prepare(
+        juce::dsp::ProcessSpec{
+            sampleRate,
+            static_cast<juce::uint32>(samplesPerBlock),
+            2
+        });
+
+    //==============================================================
+    // EQ filters
+    //==============================================================
+
+    bassFilter.prepare(
+        juce::dsp::ProcessSpec{
+            sampleRate,
+            static_cast<juce::uint32>(samplesPerBlock),
+            2
+        });
+
+    midFilter.prepare(
+        juce::dsp::ProcessSpec{
+            sampleRate,
+            static_cast<juce::uint32>(samplesPerBlock),
+            2
+        });
+
+    highFilter.prepare(
+        juce::dsp::ProcessSpec{
+            sampleRate,
+            static_cast<juce::uint32>(samplesPerBlock),
+            2
+        });
+
+    //==============================================================
+    // Reset DSP
+    //==============================================================
+
+    inputGain.reset();
+    outputGain.reset();
 
     bassFilter.reset();
     midFilter.reset();
     highFilter.reset();
 
     //==============================================================
-    // CABINET IR
+    // IR convolution
     //==============================================================
 
     irConvolution.reset();
 
-    irLoaded = false;
-
-    if (irTempFile.existsAsFile())
+    if (irLoaded && irTempFile.existsAsFile())
     {
-        irConvolution.loadImpulseResponse(
-            irTempFile,
-            juce::dsp::Convolution::Stereo::yes,
-            juce::dsp::Convolution::Trim::yes,
-            0,
-            juce::dsp::Convolution::Normalise::yes);
+        DBG("RG Amp SIM: Preparing IR convolution...");
 
-        irLoaded = true;
+        try
+        {
+            irConvolution.loadImpulseResponse(
+                irTempFile,
+                juce::dsp::Convolution::Stereo::yes,
+                juce::dsp::Convolution::Trim::yes,
+                0,
+                juce::dsp::Convolution::Normalise::yes);
+
+            DBG("RG Amp SIM: IR convolution prepared.");
+        }
+        catch (...)
+        {
+            DBG("RG Amp SIM: IR convolution FAILED.");
+            irLoaded = false;
+        }
     }
 
     //==============================================================
-    // NAM buffers
+    // Initial filter coefficients
     //==============================================================
 
-    namInputBuffer.setSize(
-        1,
-        samplesPerBlock,
-        false,
-        true,
-        true);
+    bassFilter.coefficients =
+        juce::dsp::IIR::Coefficients<float>::makeLowShelf(
+            sampleRate,
+            120.0f,
+            0.707f,
+            juce::Decibels::decibelsToGain(
+                bassParameter != nullptr
+                    ? bassParameter->load()
+                    : 0.0f));
 
-    namOutputBuffer.setSize(
-        1,
-        samplesPerBlock,
-        false,
-        true,
-        true);
+    midFilter.coefficients =
+        juce::dsp::IIR::Coefficients<float>::makePeakFilter(
+            sampleRate,
+            750.0f,
+            0.8f,
+            juce::Decibels::decibelsToGain(
+                midParameter != nullptr
+                    ? midParameter->load()
+                    : 0.0f));
 
-    namInputData.resize(
-        static_cast<size_t>(
-            samplesPerBlock));
-
-    namOutputData.resize(
-        static_cast<size_t>(
-            samplesPerBlock));
-
-    //==============================================================
-    // Prepare NAM
-    //==============================================================
-
-    if (namModel)
-    {
-        namModel->SetMaxAudioBufferSize(
-            samplesPerBlock);
-    }
+    highFilter.coefficients =
+        juce::dsp::IIR::Coefficients<float>::makeHighShelf(
+            sampleRate,
+            4500.0f,
+            0.707f,
+            juce::Decibels::decibelsToGain(
+                highParameter != nullptr
+                    ? highParameter->load()
+                    : 0.0f));
 }
 
-//==============================================================================
-// Release Resources
 //==============================================================================
 
 void AmpSimAudioProcessor::releaseResources()
 {
     inputGain.reset();
-
     outputGain.reset();
 
     bassFilter.reset();
-
     midFilter.reset();
-
     highFilter.reset();
 
     irConvolution.reset();
-
-    namInputBuffer.setSize(
-        1,
-        0);
-
-    namOutputBuffer.setSize(
-        1,
-        0);
-
-    namInputData.clear();
-
-    namOutputData.clear();
 }
 
-//==============================================================================
-// Bus Layout
 //==============================================================================
 
 bool AmpSimAudioProcessor::isBusesLayoutSupported(
     const BusesLayout& layouts) const
 {
-    const auto& mainInput =
+    const auto mainInput =
         layouts.getChannelSet(
             true,
             0);
 
-    const auto& mainOutput =
+    const auto mainOutput =
         layouts.getChannelSet(
             false,
             0);
 
-    if (mainOutput !=
-            juce::AudioChannelSet::mono()
-        &&
-        mainOutput !=
-            juce::AudioChannelSet::stereo())
+    if (mainInput != juce::AudioChannelSet::mono()
+        && mainInput != juce::AudioChannelSet::stereo())
     {
         return false;
     }
 
-    if (mainInput != mainOutput)
+    if (mainOutput != juce::AudioChannelSet::mono()
+        && mainOutput != juce::AudioChannelSet::stereo())
+    {
         return false;
+    }
 
     return true;
 }
 
 //==============================================================================
-// DSP PROCESSING
-//
-// INPUT
-//   ↓
-// GAIN
-//   ↓
-// NAM AMP MODEL
-//   ↓
-// BASS
-//   ↓
-// MID
-//   ↓
-// HI
-//   ↓
-// 4x12 IR CABINET
-//   ↓
-// VOLUME
-//   ↓
-// OUTPUT
-//
+// Audio Processing
 //==============================================================================
 
 void AmpSimAudioProcessor::processBlock(
     juce::AudioBuffer<float>& buffer,
-    juce::MidiBuffer&)
+    juce::MidiBuffer& midiMessages)
 {
-    juce::ScopedNoDenormals
-        noDenormals;
+    juce::ignoreUnused(midiMessages);
 
     const int numSamples =
         buffer.getNumSamples();
@@ -694,103 +412,56 @@ void AmpSimAudioProcessor::processBlock(
     const int numChannels =
         buffer.getNumChannels();
 
-    if (numSamples <= 0 ||
-        numChannels <= 0)
-    {
+    if (numSamples <= 0 || numChannels <= 0)
         return;
-    }
 
     //==============================================================
-    // Parameters
+    // INPUT GAIN
     //==============================================================
 
-    const float gain =
+    const float gainValue =
         gainParameter != nullptr
             ? gainParameter->load()
             : 5.0f;
 
-    const float bass =
-        bassParameter != nullptr
-            ? bassParameter->load()
-            : 0.0f;
+    // 0 -> -12 dB
+    // 5 -> 0 dB
+    // 10 -> +12 dB
 
-    const float mid =
-        midParameter != nullptr
-            ? midParameter->load()
-            : 0.0f;
-
-    const float high =
-        highParameter != nullptr
-            ? highParameter->load()
-            : 0.0f;
-
-    const float volume =
-        volumeParameter != nullptr
-            ? volumeParameter->load()
-            : 0.0f;
-
-    //==============================================================
-    // 1. INPUT GAIN
-    //==============================================================
-
-    const float gainDb =
+    const float inputDb =
         juce::jmap(
-            gain,
+            gainValue,
             0.0f,
             10.0f,
             -12.0f,
-            24.0f);
+            12.0f);
 
-    inputGain.setGainDecibels(
-        gainDb);
+    inputGain.setGainDecibels(inputDb);
 
     {
-        juce::dsp::AudioBlock<float>
-            block(buffer);
+        juce::dsp::AudioBlock<float> block(buffer);
 
-        juce::dsp::ProcessContextReplacing<float>
-            context(block);
+        juce::dsp::ProcessContextReplacing<float> context(block);
 
         inputGain.process(context);
     }
 
     //==============================================================
-    // 2. NAM AMP MODEL
+    // NAM
     //==============================================================
 
-    if (namLoaded &&
-        namModel != nullptr)
+    if (namLoaded && namModel != nullptr)
     {
-        //==========================================================
-        // Resize buffers when necessary
-        //==========================================================
-
-        if (static_cast<int>(
-                namInputData.size())
-            < numSamples)
-        {
-            namInputData.resize(
-                static_cast<size_t>(
-                    numSamples));
-
-            namOutputData.resize(
-                static_cast<size_t>(
-                    numSamples));
-        }
-
-        //==========================================================
-        // Stereo -> Mono
-        //==========================================================
-
+        // Convert stereo input to mono for NAM.
         for (int sample = 0;
              sample < numSamples;
              ++sample)
         {
-            float mono = 0.0f;
+            float value = 0.0f;
 
             if (numChannels == 1)
             {
-                mono =
+                value =
                     buffer.getSample(
                         0,
                         sample);
@@ -807,195 +478,238 @@ void AmpSimAudioProcessor::processBlock(
                         1,
                         sample);
 
-                mono =
+                value =
                     0.5f *
                     (left + right);
             }
 
             namInputData[
-                static_cast<size_t>(
-                    sample)] = mono;
+                static_cast<size_t>(sample)]
+                = value;
         }
 
-        //==========================================================
-        // Process NAM
-        //==========================================================
-
+        // Actual NeuralAudio processing.
         namModel->Process(
             namInputData.data(),
             namOutputData.data(),
             numSamples);
 
-        //==========================================================
-        // Mono -> Stereo
-        //==========================================================
-
-        for (int sample = 0;
-             sample < numSamples;
-             ++sample)
+        // Return NAM mono output to stereo.
+        if (numChannels == 1)
         {
-            const float output =
-                namOutputData[
-                    static_cast<size_t>(
-                        sample)];
+            buffer.copyFrom(
+                0,
+                0,
+                namOutputData.data(),
+                numSamples);
+        }
+        else
+        {
+            buffer.copyFrom(
+                0,
+                0,
+                namOutputData.data(),
+                numSamples);
 
-            for (int channel = 0;
-                 channel < numChannels;
-                 ++channel)
-            {
-                buffer.setSample(
-                    channel,
-                    sample,
-                    output);
-            }
+            buffer.copyFrom(
+                1,
+                0,
+                namOutputData.data(),
+                numSamples);
         }
     }
 
     //==============================================================
-    // 3. BASS
+    // BASS
     //==============================================================
 
+    const float bassDb =
+        bassParameter != nullptr
+            ? bassParameter->load()
+            : 0.0f;
+
     {
-        auto bassCoefficients =
-            juce::dsp::IIR::Coefficients<float>::
-                makeLowShelf(
-                    getSampleRate(),
-                    120.0f,
-                    0.7071f,
-                    juce::Decibels::
-                        decibelsToGain(
-                            bass));
+        juce::dsp::AudioBlock<float> block(buffer);
 
         bassFilter.coefficients =
-            bassCoefficients;
+            juce::dsp::IIR::Coefficients<float>::makeLowShelf(
+                getSampleRate(),
+                120.0f,
+                0.707f,
+                juce::Decibels::decibelsToGain(bassDb));
 
-        juce::dsp::AudioBlock<float>
-            block(buffer);
-
-        juce::dsp::ProcessContextReplacing<float>
-            context(block);
+        juce::dsp::ProcessContextReplacing<float> context(block);
 
         bassFilter.process(context);
     }
 
     //==============================================================
-    // 4. MID
+    // MID
     //==============================================================
 
+    const float midDb =
+        midParameter != nullptr
+            ? midParameter->load()
+            : 0.0f;
+
     {
-        auto midCoefficients =
-            juce::dsp::IIR::Coefficients<float>::
-                makePeakFilter(
-                    getSampleRate(),
-                    750.0f,
-                    0.8f,
-                    juce::Decibels::
-                        decibelsToGain(
-                            mid));
+        juce::dsp::AudioBlock<float> block(buffer);
 
         midFilter.coefficients =
-            midCoefficients;
+            juce::dsp::IIR::Coefficients<float>::makePeakFilter(
+                getSampleRate(),
+                750.0f,
+                0.8f,
+                juce::Decibels::decibelsToGain(midDb));
 
-        juce::dsp::AudioBlock<float>
-            block(buffer);
-
-        juce::dsp::ProcessContextReplacing<float>
-            context(block);
+        juce::dsp::ProcessContextReplacing<float> context(block);
 
         midFilter.process(context);
     }
 
     //==============================================================
-    // 5. HI
+    // HIGH
     //==============================================================
 
+    const float highDb =
+        highParameter != nullptr
+            ? highParameter->load()
+            : 0.0f;
+
     {
-        auto highCoefficients =
-            juce::dsp::IIR::Coefficients<float>::
-                makeHighShelf(
-                    getSampleRate(),
-                    4500.0f,
-                    0.7071f,
-                    juce::Decibels::
-                        decibelsToGain(
-                            high));
+        juce::dsp::AudioBlock<float> block(buffer);
 
         highFilter.coefficients =
-            highCoefficients;
+            juce::dsp::IIR::Coefficients<float>::makeHighShelf(
+                getSampleRate(),
+                4500.0f,
+                0.707f,
+                juce::Decibels::decibelsToGain(highDb));
 
-        juce::dsp::AudioBlock<float>
-            block(buffer);
-
-        juce::dsp::ProcessContextReplacing<float>
-            context(block);
+        juce::dsp::ProcessContextReplacing<float> context(block);
 
         highFilter.process(context);
     }
 
     //==============================================================
-    // 6. 4x12 CABINET / MICROPHONE IR
+    // 4x12 CAB IR
     //==============================================================
 
     if (irLoaded)
     {
-        juce::dsp::AudioBlock<float>
-            block(buffer);
+        juce::dsp::AudioBlock<float> block(buffer);
 
-        juce::dsp::ProcessContextReplacing<float>
-            context(block);
+        juce::dsp::ProcessContextReplacing<float> context(block);
 
-        irConvolution.process(
-            context);
+        irConvolution.process(context);
     }
 
     //==============================================================
-    // 7. MASTER VOLUME
+    // OUTPUT VOLUME
     //==============================================================
 
-    outputGain.setGainDecibels(
-        volume);
+    const float volumeDb =
+        volumeParameter != nullptr
+            ? volumeParameter->load()
+            : 0.0f;
+
+    outputGain.setGainDecibels(volumeDb);
 
     {
-        juce::dsp::AudioBlock<float>
-            block(buffer);
+        juce::dsp::AudioBlock<float> block(buffer);
 
-        juce::dsp::ProcessContextReplacing<float>
-            context(block);
+        juce::dsp::ProcessContextReplacing<float> context(block);
 
         outputGain.process(context);
     }
 }
 
 //==============================================================================
-// Programs
+// NAM Loading
 //==============================================================================
 
-int AmpSimAudioProcessor::getNumPrograms()
+bool AmpSimAudioProcessor::loadNAM()
 {
-    return 1;
+    if (!namTempFile.existsAsFile())
+    {
+        DBG("RG Amp SIM: NAM file does not exist.");
+        return false;
+    }
+
+    DBG("RG Amp SIM: NAM file:");
+    DBG(namTempFile.getFullPathName());
+
+    try
+    {
+        namLoader =
+            std::make_unique<
+                NeuralAudio::NeuralModelLoader>();
+
+        // The NAM models are normally designed around 48 kHz.
+        namLoader->SetExternalSampleRate(48000.0);
+
+        namModel =
+            namLoader->CreateFromFile(
+                namTempFile
+                    .getFullPathName()
+                    .toStdString());
+
+        if (namModel == nullptr)
+        {
+            DBG("RG Amp SIM: CreateFromFile returned NULL.");
+            return false;
+        }
+
+        DBG("RG Amp SIM: Neural model created.");
+
+        const auto inputAdjustment =
+            namModel->GetRecommendedInputDBAdjustment();
+
+        const auto outputAdjustment =
+            namModel->GetRecommendedOutputDBAdjustment();
+
+        DBG(
+            "NAM recommended input adjustment: "
+            + juce::String(inputAdjustment));
+
+        DBG(
+            "NAM recommended output adjustment: "
+            + juce::String(outputAdjustment));
+
+        DBG(
+            "NAM model version: "
+            + juce::String(
+                namModel->GetModelVersion()));
+
+        return true;
+    }
+    catch (...)
+    {
+        DBG("RG Amp SIM: Exception while loading NAM.");
+        namModel.reset();
+        namLoader.reset();
+        return false;
+    }
 }
 
-int AmpSimAudioProcessor::getCurrentProgram()
-{
-    return 0;
-}
+//==============================================================================
+// IR Loading
+//==============================================================================
 
-void AmpSimAudioProcessor::setCurrentProgram(
-    int)
+bool AmpSimAudioProcessor::loadIR()
 {
-}
+    if (!irTempFile.existsAsFile())
+    {
+        DBG("RG Amp SIM: IR file does not exist.");
+        return false;
+    }
 
-const juce::String
-AmpSimAudioProcessor::getProgramName(
-    int)
-{
-    return {};
-}
+    DBG("RG Amp SIM: IR file:");
+    DBG(irTempFile.getFullPathName());
 
-void AmpSimAudioProcessor::changeProgramName(
-    int,
-    const juce::String&)
-{
+    // We only mark it loaded here.
+    // Actual convolution loading happens in prepareToPlay().
+    return true;
 }
 
 //==============================================================================
@@ -1008,10 +722,8 @@ void AmpSimAudioProcessor::getStateInformation(
     auto state =
         parameters.copyState();
 
-    std::unique_ptr<
-        juce::XmlElement>
-        xml(
-            state.createXml());
+    std::unique_ptr<juce::XmlElement> xml =
+        parameters.stateToXml(state);
 
     copyXmlToBinary(
         *xml,
@@ -1024,43 +736,23 @@ void AmpSimAudioProcessor::setStateInformation(
     const void* data,
     int sizeInBytes)
 {
-    std::unique_ptr<
-        juce::XmlElement>
-        xml(
-            getXmlFromBinary(
-                data,
-                sizeInBytes));
+    std::unique_ptr<juce::XmlElement> xmlState =
+        getXmlFromBinary(
+            data,
+            sizeInBytes);
 
-    if (xml != nullptr &&
-        xml->hasTagName(
+    if (xmlState != nullptr &&
+        xmlState->hasTagName(
             parameters.state.getType()))
     {
         parameters.replaceState(
-            juce::ValueTree::fromXml(
-                *xml));
+            parameters.xmlToState(
+                *xmlState));
     }
 }
 
 //==============================================================================
-// Editor
-//==============================================================================
-
-juce::AudioProcessorEditor*
-AmpSimAudioProcessor::createEditor()
-{
-    return new AmpSimAudioProcessorEditor(
-        *this);
-}
-
-//==============================================================================
-
-bool AmpSimAudioProcessor::hasEditor() const
-{
-    return true;
-}
-
-//==============================================================================
-// Plugin Name
+// Plugin information
 //==============================================================================
 
 const juce::String
@@ -1098,11 +790,68 @@ double AmpSimAudioProcessor::getTailLengthSeconds() const
 }
 
 //==============================================================================
-// Plugin Entry
+
+int AmpSimAudioProcessor::getNumPrograms()
+{
+    return 1;
+}
+
 //==============================================================================
 
-juce::AudioProcessor*
-JUCE_CALLTYPE createPluginFilter()
+int AmpSimAudioProcessor::getCurrentProgram()
+{
+    return 0;
+}
+
+//==============================================================================
+
+void AmpSimAudioProcessor::setCurrentProgram(
+    int index)
+{
+    juce::ignoreUnused(index);
+}
+
+//==============================================================================
+
+const juce::String
+AmpSimAudioProcessor::getProgramName(int index)
+{
+    juce::ignoreUnused(index);
+
+    return {};
+}
+
+//==============================================================================
+
+void AmpSimAudioProcessor::changeProgramName(
+    int index,
+    const juce::String& newName)
+{
+    juce::ignoreUnused(index);
+    juce::ignoreUnused(newName);
+}
+
+//==============================================================================
+
+bool AmpSimAudioProcessor::hasEditor() const
+{
+    return true;
+}
+
+//==============================================================================
+
+juce::AudioProcessorEditor*
+AmpSimAudioProcessor::createEditor()
+{
+    return new AmpSimAudioProcessorEditor(*this);
+}
+
+//==============================================================================
+// JUCE factory
+//==============================================================================
+
+juce::AudioProcessor* JUCE_CALLTYPE
+createPluginFilter()
 {
     return new AmpSimAudioProcessor();
 }
