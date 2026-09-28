@@ -83,8 +83,6 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
 
     //==============================================================
     // VOLUME POPUP DISPLAY
-    //
-    // Display remains 0.0 - 10.0
     //==============================================================
 
     volumeKnob.textFromValueFunction =
@@ -122,6 +120,51 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
     setupLabel(
         volumeLabel,
         "VOLUME");
+
+    setupLabel(
+        ampLabel,
+        "AMP");
+
+    //==============================================================
+    // AMP SWITCH
+    //==============================================================
+
+    ampSwitch.setButtonText(
+        "ON");
+
+    ampSwitch.setToggleState(
+        true,
+        juce::dontSendNotification);
+
+    ampSwitch.setClickingTogglesState(
+        true);
+
+    ampSwitch.setColour(
+        juce::ToggleButton::textColourId,
+        juce::Colours::white);
+
+    ampSwitch.setColour(
+        juce::ToggleButton::tickColourId,
+        juce::Colours::white);
+
+    ampSwitch.setColour(
+        juce::ToggleButton::tickDisabledColourId,
+        juce::Colours::darkgrey);
+
+    ampSwitch.onClick =
+        [this]()
+        {
+            ampIsOn =
+                ampSwitch.getToggleState();
+
+            ampSwitch.setButtonText(
+                ampIsOn ? "ON" : "OFF");
+
+            repaint();
+        };
+
+    addAndMakeVisible(
+        ampSwitch);
 
     //==============================================================
     // PARAMETER ATTACHMENTS
@@ -268,9 +311,13 @@ void AmpSimAudioProcessorEditor::setupLabel(
         juce::Label::textColourId,
         juce::Colours::white);
 
+    //==============================================================
+    // SMALL LABEL FONT
+    //==============================================================
+
     label.setFont(
         juce::Font(
-            10.0f,
+            8.0f,
             juce::Font::bold));
 
     addAndMakeVisible(
@@ -325,11 +372,6 @@ void AmpSimAudioProcessorEditor::paint(
 
     //==============================================================
     // INPUT JACK SOCKET
-    //
-    // INPUT = X 130
-    // GAIN  = X 200
-    //
-    // Same horizontal row.
     //==============================================================
 
     const float jackCentreX =
@@ -339,7 +381,7 @@ void AmpSimAudioProcessorEditor::paint(
         330.0f * scale;
 
     const float jackRadius =
-        14.0f * scale;
+        11.0f * scale;
 
     //==============================================================
     // OUTER METAL RING
@@ -368,10 +410,10 @@ void AmpSimAudioProcessorEditor::paint(
             45));
 
     g.fillEllipse(
-        jackCentreX - jackRadius + 3.0f * scale,
-        jackCentreY - jackRadius + 3.0f * scale,
-        jackRadius * 2.0f - 6.0f * scale,
-        jackRadius * 2.0f - 6.0f * scale);
+        jackCentreX - jackRadius + 2.5f * scale,
+        jackCentreY - jackRadius + 2.5f * scale,
+        jackRadius * 2.0f - 5.0f * scale,
+        jackRadius * 2.0f - 5.0f * scale);
 
     //==============================================================
     // CENTER HOLE
@@ -381,10 +423,10 @@ void AmpSimAudioProcessorEditor::paint(
         juce::Colours::black);
 
     g.fillEllipse(
-        jackCentreX - 5.0f * scale,
-        jackCentreY - 5.0f * scale,
-        10.0f * scale,
-        10.0f * scale);
+        jackCentreX - 4.0f * scale,
+        jackCentreY - 4.0f * scale,
+        8.0f * scale,
+        8.0f * scale);
 
     //==============================================================
     // METALLIC HIGHLIGHT
@@ -397,10 +439,64 @@ void AmpSimAudioProcessorEditor::paint(
             200));
 
     g.fillEllipse(
-        jackCentreX - 7.0f * scale,
-        jackCentreY - 9.0f * scale,
-        4.0f * scale,
-        4.0f * scale);
+        jackCentreX - 5.5f * scale,
+        jackCentreY - 7.0f * scale,
+        3.0f * scale,
+        3.0f * scale);
+
+    //==============================================================
+    // AMP INDICATOR LED
+    //
+    // Right side of VOLUME
+    // X = 570
+    // Y = 330
+    //==============================================================
+
+    const float ledX =
+        570.0f * scale;
+
+    const float ledY =
+        313.0f * scale;
+
+    const float ledRadius =
+        5.0f * scale;
+
+    // LED outer ring
+    g.setColour(
+        juce::Colour(
+            35,
+            35,
+            35));
+
+    g.fillEllipse(
+        ledX - ledRadius - 2.0f * scale,
+        ledY - ledRadius - 2.0f * scale,
+        (ledRadius + 2.0f * scale) * 2.0f,
+        (ledRadius + 2.0f * scale) * 2.0f);
+
+    // LED
+    if (ampIsOn)
+    {
+        g.setColour(
+            juce::Colour(
+                70,
+                255,
+                100));
+    }
+    else
+    {
+        g.setColour(
+            juce::Colour(
+                45,
+                45,
+                45));
+    }
+
+    g.fillEllipse(
+        ledX - ledRadius,
+        ledY - ledRadius,
+        ledRadius * 2.0f,
+        ledRadius * 2.0f);
 }
 
 //==============================================================================
@@ -411,19 +507,6 @@ void AmpSimAudioProcessorEditor::resized()
 {
     //==============================================================
     // 800 x 500 REFERENCE
-    //
-    // FINAL HORIZONTAL LAYOUT
-    //
-    // INPUT     = 130
-    // GAIN      = 200
-    // BASS      = 270
-    // MID       = 340
-    // HI        = 410
-    // VOLUME    = 480
-    //
-    // ALL Y = 330
-    //
-    // Existing knob positions are NOT changed.
     //==============================================================
 
     const float scaleX =
@@ -447,7 +530,7 @@ void AmpSimAudioProcessorEditor::resized()
 
     const int knobSize =
         static_cast<int>(
-            45.0f * scale);
+            36.0f * scale);
 
     //==============================================================
     // KNOB POSITION
@@ -477,8 +560,7 @@ void AmpSimAudioProcessorEditor::resized()
         };
 
     //==============================================================
-    // EXISTING KNOBS
-    // DO NOT CHANGE
+    // KNOBS
     //==============================================================
 
     setKnobPosition(
@@ -512,11 +594,11 @@ void AmpSimAudioProcessorEditor::resized()
 
     const int labelWidth =
         static_cast<int>(
-            65.0f * scale);
+            52.0f * scale);
 
     const int labelHeight =
         static_cast<int>(
-            16.0f * scale);
+            13.0f * scale);
 
     //==============================================================
     // LABEL Y
@@ -555,7 +637,7 @@ void AmpSimAudioProcessorEditor::resized()
         130.0f);
 
     //==============================================================
-    // EXISTING LABELS
+    // KNOB LABELS
     //==============================================================
 
     setLabelPosition(
@@ -577,6 +659,44 @@ void AmpSimAudioProcessorEditor::resized()
     setLabelPosition(
         volumeLabel,
         480.0f);
+
+    //==============================================================
+    // AMP LABEL
+    //==============================================================
+
+    setLabelPosition(
+        ampLabel,
+        570.0f);
+
+    //==============================================================
+    // AMP SWITCH
+    //
+    // Right side of VOLUME
+    //==============================================================
+
+    const int ampSwitchWidth =
+        static_cast<int>(
+            42.0f * scale);
+
+    const int ampSwitchHeight =
+        static_cast<int>(
+            24.0f * scale);
+
+    const int ampSwitchX =
+        static_cast<int>(
+            570.0f * scale
+            - ampSwitchWidth * 0.5f);
+
+    const int ampSwitchY =
+        static_cast<int>(
+            330.0f * scale
+            - ampSwitchHeight * 0.5f);
+
+    ampSwitch.setBounds(
+        ampSwitchX,
+        ampSwitchY,
+        ampSwitchWidth,
+        ampSwitchHeight);
 }
 
 //==============================================================================
