@@ -41,7 +41,7 @@ namespace
         juce::MathConstants<float>::pi * 2.75f;
 
     //==============================================================
-    // REALISTIC TOGGLE LOOK
+    // LANEY-STYLE FRONT PANEL TOGGLE
     //==============================================================
 
     class RGToggleLookAndFeel
@@ -65,14 +65,18 @@ namespace
             const float w = bounds.getWidth();
             const float h = bounds.getHeight();
 
-            //======================================================
-            // SWITCH PLATE
-            //======================================================
+            const bool on =
+                button.getToggleState();
 
-            const float plateX = 2.0f;
-            const float plateY = 3.0f;
-            const float plateW = w - 4.0f;
-            const float plateH = h - 6.0f;
+            const bool isAmp =
+                button.getButtonText()
+                    .equalsIgnoreCase("ON")
+                || button.getButtonText()
+                    .equalsIgnoreCase("OFF");
+
+            //======================================================
+            // FRONT PANEL RECESSED AREA
+            //======================================================
 
             g.setColour(
                 juce::Colour(
@@ -81,118 +85,145 @@ namespace
                     8));
 
             g.fillRoundedRectangle(
-                plateX,
-                plateY,
-                plateW,
-                plateH,
-                4.0f);
-
-            //======================================================
-            // METAL EDGE
-            //======================================================
-
-            g.setColour(
-                juce::Colour(
-                    70,
-                    70,
-                    70));
-
-            g.drawRoundedRectangle(
-                plateX,
-                plateY,
-                plateW,
-                plateH,
-                4.0f,
-                1.0f);
-
-            //======================================================
-            // INNER SLOT
-            //======================================================
-
-            const float slotX = 8.0f;
-            const float slotY = h * 0.5f - 4.0f;
-            const float slotW = w - 16.0f;
-            const float slotH = 8.0f;
-
-            g.setColour(
-                juce::Colour(
-                    2,
-                    2,
-                    2));
-
-            g.fillRoundedRectangle(
-                slotX,
-                slotY,
-                slotW,
-                slotH,
+                2.0f,
+                3.0f,
+                w - 4.0f,
+                h - 6.0f,
                 3.0f);
 
             //======================================================
-            // TOGGLE POSITION
+            // THIN METAL EDGE
             //======================================================
 
-            const bool on =
-                button.getToggleState();
+            g.setColour(
+                juce::Colour(
+                    105,
+                    105,
+                    105));
 
-            // MODE = horizontal movement
-            // AMP  = vertical-looking metal switch,
-            //        but rendered inside the same component.
+            g.drawRoundedRectangle(
+                2.0f,
+                3.0f,
+                w - 4.0f,
+                h - 6.0f,
+                3.0f,
+                1.0f);
 
-            const bool isAmp =
-                button.getButtonText()
-                    .equalsIgnoreCase("ON")
-                || button.getButtonText()
-                    .equalsIgnoreCase("OFF");
+            //======================================================
+            // INNER SHADOW
+            //======================================================
+
+            g.setColour(
+                juce::Colour(
+                    0,
+                    0,
+                    0));
+
+            g.drawRoundedRectangle(
+                5.0f,
+                6.0f,
+                w - 10.0f,
+                h - 12.0f,
+                2.0f,
+                2.0f);
+
+            //======================================================
+            // MODE SWITCH
+            //======================================================
 
             if (! isAmp)
             {
-                //==================================================
-                // MODE TOGGLE
-                // CLEAN = LEFT
-                // DRIVE = RIGHT
-                //==================================================
-
                 const float centerY =
-                    h * 0.5f;
+                    h * 0.47f;
 
-                const float leftX =
-                    w * 0.34f;
+                const float leftPosition =
+                    21.0f;
 
-                const float rightX =
-                    w * 0.66f;
+                const float rightPosition =
+                    w - 21.0f;
 
-                const float centerX =
-                    on ? rightX : leftX;
+                const float switchX =
+                    on
+                        ? rightPosition
+                        : leftPosition;
 
-                // Metal base
+                //==================================================
+                // SWITCH TRACK
+                //==================================================
+
                 g.setColour(
                     juce::Colour(
-                        105,
-                        105,
-                        105));
+                        2,
+                        2,
+                        2));
+
+                g.fillRoundedRectangle(
+                    15.0f,
+                    centerY - 3.0f,
+                    w - 30.0f,
+                    6.0f,
+                    3.0f);
+
+                //==================================================
+                // TRACK HIGHLIGHT
+                //==================================================
+
+                g.setColour(
+                    juce::Colour(
+                        75,
+                        75,
+                        75));
+
+                g.drawLine(
+                    leftPosition,
+                    centerY - 0.5f,
+                    rightPosition,
+                    centerY - 0.5f,
+                    1.0f);
+
+                //==================================================
+                // METAL WASHER
+                //==================================================
+
+                g.setColour(
+                    juce::Colour(
+                        55,
+                        55,
+                        55));
 
                 g.fillEllipse(
-                    centerX - 5.0f,
-                    centerY - 5.0f,
-                    10.0f,
-                    10.0f);
+                    switchX - 7.0f,
+                    centerY - 7.0f,
+                    14.0f,
+                    14.0f);
 
-                // Metal lever
                 g.setColour(
                     juce::Colour(
-                        205,
-                        205,
-                        205));
+                        175,
+                        175,
+                        175));
+
+                g.drawEllipse(
+                    switchX - 7.0f,
+                    centerY - 7.0f,
+                    14.0f,
+                    14.0f,
+                    1.0f);
+
+                //==================================================
+                // LEVER ANGLE
+                //==================================================
 
                 const float leverAngle =
                     on
-                        ? -0.45f
-                        : 0.45f;
+                        ? -0.62f
+                        : 0.62f;
 
-                const float leverLength = 9.0f;
+                const float leverLength =
+                    12.0f;
 
                 const float endX =
-                    centerX
+                    switchX
                     + std::sin(leverAngle)
                       * leverLength;
 
@@ -201,123 +232,88 @@ namespace
                     - std::cos(leverAngle)
                       * leverLength;
 
+                //==================================================
+                // LEVER SHADOW
+                //==================================================
+
+                g.setColour(
+                    juce::Colour(
+                        0,
+                        0,
+                        0)
+                        .withAlpha(0.8f));
+
                 g.drawLine(
-                    centerX,
+                    switchX + 1.2f,
+                    centerY + 1.4f,
+                    endX + 1.2f,
+                    endY + 1.4f,
+                    4.0f);
+
+                //==================================================
+                // METAL LEVER
+                //==================================================
+
+                g.setColour(
+                    juce::Colour(
+                        205,
+                        205,
+                        205));
+
+                g.drawLine(
+                    switchX,
                     centerY,
                     endX,
                     endY,
-                    3.0f);
-
-                // Lever tip
-                g.setColour(
-                    juce::Colour(
-                        225,
-                        225,
-                        225));
-
-                g.fillEllipse(
-                    endX - 3.0f,
-                    endY - 3.0f,
-                    6.0f,
-                    6.0f);
+                    3.6f);
 
                 //==================================================
-                // MODE TEXT
+                // LEVER HIGHLIGHT
                 //==================================================
-
-                g.setFont(
-                    juce::Font(
-                        5.5f,
-                        juce::Font::bold));
 
                 g.setColour(
                     juce::Colour(
-                        185,
-                        185,
-                        185));
-
-                g.drawText(
-                    "CLEAN",
-                    2,
-                    static_cast<int>(h - 8.0f),
-                    static_cast<int>(w * 0.5f - 2.0f),
-                    7,
-                    juce::Justification::centred);
-
-                g.drawText(
-                    "DRIVE",
-                    static_cast<int>(w * 0.5f),
-                    static_cast<int>(h - 8.0f),
-                    static_cast<int>(w * 0.5f - 2.0f),
-                    7,
-                    juce::Justification::centred);
-            }
-            else
-            {
-                //==================================================
-                // AMP TOGGLE
-                // OFF = DOWN
-                // ON  = UP
-                //==================================================
-
-                const float centerX =
-                    w * 0.5f;
-
-                const float centerY =
-                    h * 0.5f;
-
-                const float switchY =
-                    on
-                        ? centerY - 4.0f
-                        : centerY + 4.0f;
-
-                // Metal mounting nut
-                g.setColour(
-                    juce::Colour(
-                        95,
-                        95,
-                        95));
-
-                g.fillEllipse(
-                    centerX - 5.0f,
-                    switchY - 5.0f,
-                    10.0f,
-                    10.0f);
-
-                // Metal lever
-                g.setColour(
-                    juce::Colour(
-                        215,
-                        215,
-                        215));
-
-                const float leverTop =
-                    on
-                        ? switchY - 8.0f
-                        : switchY + 8.0f;
+                        250,
+                        250,
+                        250));
 
                 g.drawLine(
-                    centerX,
-                    switchY,
-                    centerX,
-                    leverTop,
-                    3.0f);
-
-                // Lever tip
-                g.setColour(
-                    juce::Colour(
-                        235,
-                        235,
-                        235));
-
-                g.fillEllipse(
-                    centerX - 3.0f,
-                    leverTop - 3.0f,
-                    6.0f,
-                    6.0f);
+                    switchX - 0.5f,
+                    centerY - 0.5f,
+                    endX - 0.5f,
+                    endY - 0.5f,
+                    0.9f);
 
                 //==================================================
-                // ON / OFF TEXT
+                // LEVER TIP
+                //==================================================
+
+                g.setColour(
+                    juce::Colour(
+                        150,
+                        150,
+                        150));
+
+                g.fillEllipse(
+                    endX - 4.0f,
+                    endY - 4.0f,
+                    8.0f,
+                    8.0f);
+
+                g.setColour(
+                    juce::Colour(
+                        230,
+                        230,
+                        230));
+
+                g.fillEllipse(
+                    endX - 2.4f,
+                    endY - 2.4f,
+                    4.8f,
+                    4.8f);
+
+                //==================================================
+                // CLEAN / DRIVE
                 //==================================================
 
                 g.setFont(
@@ -328,22 +324,232 @@ namespace
                 g.setColour(
                     on
                         ? juce::Colour(
-                            100,
-                            220,
-                            110)
-                        : juce::Colour(
-                            150,
-                            150,
-                            150));
+                            105,
+                            105,
+                            105)
+                        : juce::Colours::white);
 
                 g.drawText(
-                    on ? "ON" : "OFF",
-                    2,
-                    static_cast<int>(h - 8.0f),
-                    static_cast<int>(w - 4.0f),
+                    "CLEAN",
+                    5,
+                    static_cast<int>(h - 9.0f),
+                    28,
                     7,
                     juce::Justification::centred);
+
+                g.setColour(
+                    on
+                        ? juce::Colours::white
+                        : juce::Colour(
+                            105,
+                            105,
+                            105));
+
+                g.drawText(
+                    "DRIVE",
+                    static_cast<int>(w - 33.0f),
+                    static_cast<int>(h - 9.0f),
+                    28,
+                    7,
+                    juce::Justification::centred);
+
+                return;
             }
+
+            //======================================================
+            // AMP SWITCH
+            //======================================================
+
+            const float centerX =
+                w * 0.5f;
+
+            const float switchY =
+                on
+                    ? 10.0f
+                    : h - 11.0f;
+
+            //======================================================
+            // VERTICAL SLOT
+            //======================================================
+
+            g.setColour(
+                juce::Colour(
+                    2,
+                    2,
+                    2));
+
+            g.fillRoundedRectangle(
+                centerX - 3.0f,
+                7.0f,
+                6.0f,
+                h - 14.0f,
+                3.0f);
+
+            //======================================================
+            // SLOT HIGHLIGHT
+            //======================================================
+
+            g.setColour(
+                juce::Colour(
+                    75,
+                    75,
+                    75));
+
+            g.drawLine(
+                centerX - 0.5f,
+                8.0f,
+                centerX - 0.5f,
+                h - 8.0f,
+                1.0f);
+
+            //======================================================
+            // METAL WASHER
+            //======================================================
+
+            g.setColour(
+                juce::Colour(
+                    55,
+                    55,
+                    55));
+
+            g.fillEllipse(
+                centerX - 7.0f,
+                switchY - 7.0f,
+                14.0f,
+                14.0f);
+
+            g.setColour(
+                juce::Colour(
+                    180,
+                    180,
+                    180));
+
+            g.drawEllipse(
+                centerX - 7.0f,
+                switchY - 7.0f,
+                14.0f,
+                14.0f,
+                1.0f);
+
+            //======================================================
+            // METAL LEVER
+            //======================================================
+
+            const float leverLength =
+                11.0f;
+
+            const float endY =
+                on
+                    ? switchY - leverLength
+                    : switchY + leverLength;
+
+            //======================================================
+            // LEVER SHADOW
+            //======================================================
+
+            g.setColour(
+                juce::Colour(
+                    0,
+                    0,
+                    0)
+                    .withAlpha(0.85f));
+
+            g.drawLine(
+                centerX + 1.2f,
+                switchY + 1.2f,
+                centerX + 1.2f,
+                endY + 1.2f,
+                4.0f);
+
+            //======================================================
+            // LEVER
+            //======================================================
+
+            g.setColour(
+                juce::Colour(
+                    210,
+                    210,
+                    210));
+
+            g.drawLine(
+                centerX,
+                switchY,
+                centerX,
+                endY,
+                3.6f);
+
+            //======================================================
+            // HIGHLIGHT
+            //======================================================
+
+            g.setColour(
+                juce::Colour(
+                    250,
+                    250,
+                    250));
+
+            g.drawLine(
+                centerX - 0.5f,
+                switchY - 0.5f,
+                centerX - 0.5f,
+                endY - 0.5f,
+                0.9f);
+
+            //======================================================
+            // LEVER TIP
+            //======================================================
+
+            g.setColour(
+                juce::Colour(
+                    150,
+                    150,
+                    150));
+
+            g.fillEllipse(
+                centerX - 4.0f,
+                endY - 4.0f,
+                8.0f,
+                8.0f);
+
+            g.setColour(
+                juce::Colour(
+                    235,
+                    235,
+                    235));
+
+            g.fillEllipse(
+                centerX - 2.4f,
+                endY - 2.4f,
+                4.8f,
+                4.8f);
+
+            //======================================================
+            // ON / OFF
+            //======================================================
+
+            g.setFont(
+                juce::Font(
+                    5.5f,
+                    juce::Font::bold));
+
+            g.setColour(
+                on
+                    ? juce::Colour(
+                        95,
+                        225,
+                        105)
+                    : juce::Colour(
+                        135,
+                        135,
+                        135));
+
+            g.drawText(
+                on ? "ON" : "OFF",
+                2,
+                static_cast<int>(h - 9.0f),
+                static_cast<int>(w - 4.0f),
+                7,
+                juce::Justification::centred);
         }
     };
 
@@ -377,24 +583,24 @@ AmpSimAudioProcessorEditor(
     // KNOBS
     //==============================================================
 
-    setupKnob(gainKnob,   0.0,  10.0, 0.01);
-    setupKnob(bassKnob,  -12.0, 12.0, 0.01);
-    setupKnob(midKnob,   -12.0, 12.0, 0.01);
-    setupKnob(hiKnob,    -12.0, 12.0, 0.01);
-    setupKnob(volumeKnob, 0.0,  10.0, 0.01);
+    setupKnob(gainKnob, 0.0, 10.0, 0.01);
+    setupKnob(bassKnob, -12.0, 12.0, 0.01);
+    setupKnob(midKnob, -12.0, 12.0, 0.01);
+    setupKnob(hiKnob, -12.0, 12.0, 0.01);
+    setupKnob(volumeKnob, 0.0, 10.0, 0.01);
 
     //==============================================================
     // LABELS
     //==============================================================
 
-    setupLabel(inputLabel,  "INPUT");
-    setupLabel(gainLabel,   "GAIN");
-    setupLabel(bassLabel,   "BASS");
-    setupLabel(midLabel,    "MID");
-    setupLabel(hiLabel,     "HI");
+    setupLabel(inputLabel, "INPUT");
+    setupLabel(gainLabel, "GAIN");
+    setupLabel(bassLabel, "BASS");
+    setupLabel(midLabel, "MID");
+    setupLabel(hiLabel, "HI");
     setupLabel(volumeLabel, "VOLUME");
-    setupLabel(modeLabel,   "MODE");
-    setupLabel(ampLabel,    "AMP");
+    setupLabel(modeLabel, "MODE");
+    setupLabel(ampLabel, "AMP");
 
     //==============================================================
     // MODE SWITCH
@@ -402,7 +608,6 @@ AmpSimAudioProcessorEditor(
 
     modeSwitch.setButtonText("CLEAN");
     modeSwitch.setClickingTogglesState(true);
-
     modeSwitch.setToggleState(
         false,
         juce::dontSendNotification);
@@ -439,7 +644,6 @@ AmpSimAudioProcessorEditor(
 
     ampSwitch.setButtonText("ON");
     ampSwitch.setClickingTogglesState(true);
-
     ampSwitch.setToggleState(
         true,
         juce::dontSendNotification);
@@ -556,6 +760,17 @@ void AmpSimAudioProcessorEditor::setupKnob(
     slider.setSliderStyle(
         juce::Slider::RotaryHorizontalVerticalDrag);
 
+    //==============================================================
+    // IMPORTANT:
+    // JUCE mouse movement now uses the exact same rotation
+    // range as the drawn pointer.
+    //==============================================================
+
+    slider.setRotaryParameters(
+        knobStartAngle,
+        knobEndAngle,
+        false);
+
     slider.setTextBoxStyle(
         juce::Slider::NoTextBox,
         false,
@@ -625,10 +840,7 @@ RGKnobLookAndFeel::drawRotarySlider(
     float rotaryEndAngle,
     juce::Slider& slider)
 {
-    juce::ignoreUnused(
-        rotaryStartAngle,
-        rotaryEndAngle,
-        slider);
+    juce::ignoreUnused(slider);
 
     const float size =
         static_cast<float>(
@@ -684,12 +896,12 @@ RGKnobLookAndFeel::drawRotarySlider(
     //==============================================================
 
     const float angle =
-        knobStartAngle
+        rotaryStartAngle
         + sliderPosProportional
-          * (knobEndAngle - knobStartAngle);
+          * (rotaryEndAngle - rotaryStartAngle);
 
     const float pointerLength =
-        knobRadius * 0.65f;
+        knobRadius * 0.68f;
 
     const float pointerX =
         cx
@@ -701,6 +913,28 @@ RGKnobLookAndFeel::drawRotarySlider(
         + std::sin(angle)
           * pointerLength;
 
+    //==============================================================
+    // POINTER SHADOW
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            0,
+            0,
+            0)
+            .withAlpha(0.35f));
+
+    g.drawLine(
+        cx + 0.8f,
+        cy + 0.8f,
+        pointerX + 0.8f,
+        pointerY + 0.8f,
+        2.8f);
+
+    //==============================================================
+    // POINTER
+    //==============================================================
+
     g.setColour(
         juce::Colours::black);
 
@@ -709,7 +943,23 @@ RGKnobLookAndFeel::drawRotarySlider(
         cy,
         pointerX,
         pointerY,
-        2.0f);
+        2.2f);
+
+    //==============================================================
+    // CENTER CAP
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            35,
+            35,
+            35));
+
+    g.fillEllipse(
+        cx - 2.0f,
+        cy - 2.0f,
+        4.0f,
+        4.0f);
 }
 
 //==================================================================
@@ -743,7 +993,8 @@ void AmpSimAudioProcessorEditor::paint(
     // INPUT JACK
     //==============================================================
 
-    constexpr float jackRadius = 11.0f;
+    constexpr float jackRadius =
+        11.0f;
 
     g.setColour(
         juce::Colour(
@@ -774,14 +1025,25 @@ void AmpSimAudioProcessorEditor::paint(
     // AMP LED
     //==============================================================
 
-    constexpr float ledX = ampX;
-    constexpr float ledY = controlY - 17.0f;
-    constexpr float ledRadius = 5.0f;
+    constexpr float ledX =
+        ampX;
+
+    constexpr float ledY =
+        controlY - 17.0f;
+
+    constexpr float ledRadius =
+        5.0f;
 
     g.setColour(
         ampIsOn
-            ? juce::Colour(70, 220, 90)
-            : juce::Colour(45, 45, 45));
+            ? juce::Colour(
+                70,
+                220,
+                90)
+            : juce::Colour(
+                45,
+                45,
+                45));
 
     g.fillEllipse(
         ledX - ledRadius,
@@ -811,111 +1073,136 @@ void AmpSimAudioProcessorEditor::resized()
     //==============================================================
 
     gainKnob.setBounds(
-        static_cast<int>(gainX - knobSize * 0.5f),
-        static_cast<int>(controlY - knobSize * 0.5f),
+        static_cast<int>(
+            gainX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
         static_cast<int>(knobSize),
         static_cast<int>(knobSize));
 
     bassKnob.setBounds(
-        static_cast<int>(bassX - knobSize * 0.5f),
-        static_cast<int>(controlY - knobSize * 0.5f),
+        static_cast<int>(
+            bassX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
         static_cast<int>(knobSize),
         static_cast<int>(knobSize));
 
     midKnob.setBounds(
-        static_cast<int>(midX - knobSize * 0.5f),
-        static_cast<int>(controlY - knobSize * 0.5f),
+        static_cast<int>(
+            midX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
         static_cast<int>(knobSize),
         static_cast<int>(knobSize));
 
     hiKnob.setBounds(
-        static_cast<int>(hiX - knobSize * 0.5f),
-        static_cast<int>(controlY - knobSize * 0.5f),
+        static_cast<int>(
+            hiX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
         static_cast<int>(knobSize),
         static_cast<int>(knobSize));
 
     volumeKnob.setBounds(
-        static_cast<int>(volumeX - knobSize * 0.5f),
-        static_cast<int>(controlY - knobSize * 0.5f),
+        static_cast<int>(
+            volumeX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
         static_cast<int>(knobSize),
         static_cast<int>(knobSize));
 
     //==============================================================
-    // LABELS — ABOVE COMPONENTS
+    // LABELS ABOVE CONTROLS
     //==============================================================
 
-    constexpr int labelWidth  = 60;
-    constexpr int labelHeight = 18;
+    constexpr int labelWidth =
+        60;
+
+    constexpr int labelHeight =
+        18;
 
     constexpr int labelY =
         static_cast<int>(
             controlY - 42.0f);
 
     inputLabel.setBounds(
-        static_cast<int>(inputX - labelWidth * 0.5f),
+        static_cast<int>(
+            inputX - labelWidth * 0.5f),
         labelY,
         labelWidth,
         labelHeight);
 
     gainLabel.setBounds(
-        static_cast<int>(gainX - labelWidth * 0.5f),
+        static_cast<int>(
+            gainX - labelWidth * 0.5f),
         labelY,
         labelWidth,
         labelHeight);
 
     bassLabel.setBounds(
-        static_cast<int>(bassX - labelWidth * 0.5f),
+        static_cast<int>(
+            bassX - labelWidth * 0.5f),
         labelY,
         labelWidth,
         labelHeight);
 
     midLabel.setBounds(
-        static_cast<int>(midX - labelWidth * 0.5f),
+        static_cast<int>(
+            midX - labelWidth * 0.5f),
         labelY,
         labelWidth,
         labelHeight);
 
     hiLabel.setBounds(
-        static_cast<int>(hiX - labelWidth * 0.5f),
+        static_cast<int>(
+            hiX - labelWidth * 0.5f),
         labelY,
         labelWidth,
         labelHeight);
 
     volumeLabel.setBounds(
-        static_cast<int>(volumeX - labelWidth * 0.5f),
+        static_cast<int>(
+            volumeX - labelWidth * 0.5f),
         labelY,
         labelWidth,
         labelHeight);
 
     modeLabel.setBounds(
-        static_cast<int>(modeX - labelWidth * 0.5f),
+        static_cast<int>(
+            modeX - labelWidth * 0.5f),
         labelY,
         labelWidth,
         labelHeight);
 
     ampLabel.setBounds(
-        static_cast<int>(ampX - labelWidth * 0.5f),
+        static_cast<int>(
+            ampX - labelWidth * 0.5f),
         labelY,
         labelWidth,
         labelHeight);
 
     //==============================================================
-    // MODE REALISTIC SWITCH
+    // MODE TOGGLE
     //==============================================================
 
     modeSwitch.setBounds(
-        static_cast<int>(modeX - 32.0f),
-        static_cast<int>(controlY - 15.0f),
+        static_cast<int>(
+            modeX - 32.0f),
+        static_cast<int>(
+            controlY - 15.0f),
         64,
         30);
 
     //==============================================================
-    // AMP REALISTIC SWITCH
+    // AMP TOGGLE
     //==============================================================
 
     ampSwitch.setBounds(
-        static_cast<int>(ampX - 26.0f),
-        static_cast<int>(controlY - 15.0f),
+        static_cast<int>(
+            ampX - 26.0f),
+        static_cast<int>(
+            controlY - 15.0f),
         52,
         30);
 }
