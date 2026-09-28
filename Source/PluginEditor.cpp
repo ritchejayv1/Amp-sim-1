@@ -73,11 +73,11 @@ namespace
             const bool on =
                 button.getToggleState();
 
+            // AMP is identified by Component ID,
+            // because it has no visible ON/OFF text.
             const bool isAmp =
-                button.getButtonText()
-                    .equalsIgnoreCase("ON")
-                || button.getButtonText()
-                    .equalsIgnoreCase("OFF");
+                button.getComponentID()
+                    == "AMP_SWITCH";
 
             //======================================================
             // MODE
@@ -282,7 +282,9 @@ namespace
             //======================================================
             // AMP SWITCH
             //
-            // Slightly larger physical toggle
+            // Physical vertical toggle.
+            // No ON/OFF text.
+            // Red LED is the status indicator.
             //======================================================
 
             const float centerX =
@@ -441,34 +443,6 @@ namespace
                 endY - 2.7f,
                 5.4f,
                 5.4f);
-
-            //======================================================
-            // ON / OFF TEXT
-            //======================================================
-
-            g.setFont(
-                juce::Font(
-                    5.5f,
-                    juce::Font::bold));
-
-            g.setColour(
-                on
-                    ? juce::Colour(
-                        95,
-                        225,
-                        105)
-                    : juce::Colour(
-                        135,
-                        135,
-                        135));
-
-            g.drawText(
-                on ? "ON" : "OFF",
-                1,
-                static_cast<int>(h - 8.0f),
-                static_cast<int>(w - 2.0f),
-                7,
-                juce::Justification::centred);
         }
     };
 
@@ -579,13 +553,20 @@ AmpSimAudioProcessorEditor(
             modeSwitch.setButtonText("");
 
             modeSwitch.repaint();
+            repaint();
         };
 
     //==============================================================
     // AMP SWITCH
     //==============================================================
 
-    ampSwitch.setButtonText("ON");
+    // No visible ON/OFF text.
+    ampSwitch.setButtonText("");
+
+    // Component ID tells the LookAndFeel
+    // that this button is the AMP switch.
+    ampSwitch.setComponentID(
+        "AMP_SWITCH");
 
     ampSwitch.setClickingTogglesState(true);
 
@@ -611,11 +592,6 @@ AmpSimAudioProcessorEditor(
         {
             ampIsOn =
                 ampSwitch.getToggleState();
-
-            ampSwitch.setButtonText(
-                ampIsOn
-                    ? "ON"
-                    : "OFF");
 
             ampSwitch.repaint();
             repaint();
@@ -672,10 +648,7 @@ AmpSimAudioProcessorEditor(
 
     modeSwitch.setButtonText("");
 
-    ampSwitch.setButtonText(
-        ampIsOn
-            ? "ON"
-            : "OFF");
+    ampSwitch.setButtonText("");
 
     repaint();
 }
@@ -969,10 +942,12 @@ void AmpSimAudioProcessorEditor::paint(
     // LARGE RED LED
     // ON  = BRIGHT RED
     // OFF = DARK RED
+    //
+    // LED moved farther to the right of the AMP switch.
     //==============================================================
 
     constexpr float ledX =
-        ampX + 29.0f;
+        ampX + 40.0f;
 
     constexpr float ledY =
         controlY;
@@ -1117,6 +1092,8 @@ void AmpSimAudioProcessorEditor::resized()
 
     //==============================================================
     // LABELS
+    //
+    // Moved 8 px lower / closer to controls.
     //==============================================================
 
     constexpr int labelWidth =
@@ -1127,7 +1104,7 @@ void AmpSimAudioProcessorEditor::resized()
 
     constexpr int labelY =
         static_cast<int>(
-            controlY - 42.0f);
+            controlY - 34.0f);
 
     inputLabel.setBounds(
         static_cast<int>(
@@ -1200,7 +1177,7 @@ void AmpSimAudioProcessorEditor::resized()
     //==============================================================
     // AMP SWITCH
     //
-    // Slightly larger than before
+    // Slightly larger physical switch.
     //==============================================================
 
     ampSwitch.setBounds(
