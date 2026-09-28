@@ -45,9 +45,6 @@ AmpSimAudioProcessor::AmpSimAudioProcessor()
 
     ampParameter =
         parameters.getRawParameterValue("AMP");
-
-    // NeuralModelLoader is a direct member object.
-    // Do NOT create it with make_unique().
 }
 
 //==============================================================
@@ -656,14 +653,32 @@ void AmpSimAudioProcessor::processBlock(
     }
 
     //==========================================================
-    // FIXED OUTPUT BOOST
+    // OUTPUT BOOST
+    //==========================================================
+    //
+    // DRIVE = +18 dB
+    // CLEAN = +30 dB
+    //
+    // CLEAN gets +12 dB additional makeup gain because
+    // the NAM DRIVE path is naturally louder than CLEAN.
+    //
+    // AMP OFF returns before this section, so bypass remains
+    // completely dry.
     //==========================================================
 
     constexpr float fixedOutputBoostDb =
         18.0f;
 
+    constexpr float cleanMakeupGainDb =
+        12.0f;
+
+    const float totalOutputBoostDb =
+        driveMode
+            ? fixedOutputBoostDb
+            : fixedOutputBoostDb + cleanMakeupGainDb;
+
     outputGain.setGainDecibels(
-        fixedOutputBoostDb);
+        totalOutputBoostDb);
 
     {
         juce::dsp::AudioBlock<float> monoBlock(
@@ -868,6 +883,7 @@ void AmpSimAudioProcessor::setStateInformation(
         }
     }
 }
+
 //==============================================================
 // JUCE PLUGIN FACTORY
 //==============================================================
