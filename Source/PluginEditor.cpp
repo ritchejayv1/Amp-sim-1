@@ -32,13 +32,16 @@ namespace
 
     //==============================================================
     // KNOB ROTATION
+    //
+    // 270° total sweep
+    // Center/default position = 12 o'clock
     //==============================================================
 
     constexpr float knobStartAngle =
-        juce::MathConstants<float>::pi * 1.25f;
+        juce::MathConstants<float>::pi * 0.75f;   // 135°
 
     constexpr float knobEndAngle =
-        juce::MathConstants<float>::pi * 2.75f;
+        juce::MathConstants<float>::pi * 2.25f;   // 405°
 
     //==============================================================
     // TOGGLE LOOK AND FEEL
@@ -76,13 +79,19 @@ namespace
 
             //======================================================
             // MODE = SQUARE PUSH BUTTON
+            //
+            // Released = CLEAN
+            // Pressed  = DRIVE
+            //
+            // No CLEAN / DRIVE text
+            // No surrounding panel
             //======================================================
 
             if (! isAmp)
             {
                 const float buttonSize =
                     juce::jmin(
-                        28.0f,
+                        24.0f,
                         h - 2.0f);
 
                 const float bx =
@@ -92,130 +101,102 @@ namespace
                     (h - buttonSize) * 0.5f;
 
                 //==================================================
-                // RECESSED METAL PANEL
-                //==================================================
-
-                g.setColour(
-                    juce::Colour(
-                        7,
-                        7,
-                        7));
-
-                g.fillRoundedRectangle(
-                    1.0f,
-                    2.0f,
-                    w - 2.0f,
-                    h - 4.0f,
-                    3.0f);
-
-                g.setColour(
-                    juce::Colour(
-                        105,
-                        105,
-                        105));
-
-                g.drawRoundedRectangle(
-                    1.0f,
-                    2.0f,
-                    w - 2.0f,
-                    h - 4.0f,
-                    3.0f,
-                    1.0f);
-
-                //==================================================
-                // BUTTON SHADOW / RECESS
+                // BUTTON SHADOW
                 //==================================================
 
                 g.setColour(
                     juce::Colour(
                         0,
                         0,
-                        0));
+                        0)
+                        .withAlpha(0.9f));
 
                 g.fillRoundedRectangle(
-                    bx - 1.5f,
+                    bx + 1.5f,
                     by + 2.0f,
-                    buttonSize + 3.0f,
-                    buttonSize + 2.0f,
-                    3.0f);
+                    buttonSize,
+                    buttonSize,
+                    2.5f);
 
                 //==================================================
-                // PUSH BUTTON BODY
+                // PRESSED / DRIVE
                 //==================================================
 
                 if (on)
                 {
-                    // DRIVE ENGAGED
+                    // Dark blue body
 
                     g.setColour(
                         juce::Colour(
-                            18,
+                            20,
                             75,
                             145));
 
                     g.fillRoundedRectangle(
                         bx,
-                        by + 1.5f,
+                        by + 1.0f,
                         buttonSize,
-                        buttonSize - 1.5f,
+                        buttonSize - 1.0f,
                         2.5f);
 
-                    // Blue edge
+                    // Blue outer edge
 
                     g.setColour(
                         juce::Colour(
-                            70,
-                            150,
+                            85,
+                            165,
                             255));
 
                     g.drawRoundedRectangle(
                         bx,
-                        by + 1.5f,
+                        by + 1.0f,
                         buttonSize,
-                        buttonSize - 1.5f,
+                        buttonSize - 1.0f,
                         2.5f,
                         1.0f);
 
-                    // Active center
+                    // Inner active surface
 
                     g.setColour(
                         juce::Colour(
                             45,
                             125,
-                            235));
+                            225));
 
                     g.fillRoundedRectangle(
-                        bx + 4.0f,
+                        bx + 3.0f,
                         by + 4.0f,
-                        buttonSize - 8.0f,
-                        buttonSize - 8.0f,
+                        buttonSize - 6.0f,
+                        buttonSize - 7.0f,
                         1.5f);
 
-                    // Highlight
+                    // Top highlight
 
                     g.setColour(
                         juce::Colour(
-                            130,
-                            195,
+                            180,
+                            220,
                             255)
                         .withAlpha(0.65f));
 
                     g.drawLine(
-                        bx + 5.0f,
-                        by + 5.0f,
-                        bx + buttonSize - 5.0f,
-                        by + 5.0f,
+                        bx + 4.0f,
+                        by + 4.0f,
+                        bx + buttonSize - 4.0f,
+                        by + 4.0f,
                         1.0f);
                 }
                 else
                 {
-                    // CLEAN / RELEASED
+                    //==================================================
+                    // RELEASED / CLEAN
+                    //==================================================
 
                     g.setColour(
                         juce::Colour(
-                            42,
-                            42,
-                            42));
+                            45,
+                            45,
+                            45));
 
                     g.fillRoundedRectangle(
                         bx,
@@ -224,11 +205,13 @@ namespace
                         buttonSize,
                         2.5f);
 
+                    // Metal edge
+
                     g.setColour(
                         juce::Colour(
-                            125,
-                            125,
-                            125));
+                            145,
+                            145,
+                            145));
 
                     g.drawRoundedRectangle(
                         bx,
@@ -242,15 +225,15 @@ namespace
 
                     g.setColour(
                         juce::Colour(
-                            180,
-                            180,
-                            180)
-                        .withAlpha(0.45f));
+                            205,
+                            205,
+                            205)
+                        .withAlpha(0.4f));
 
                     g.drawLine(
-                        bx + 4.0f,
+                        bx + 3.0f,
                         by + 3.0f,
-                        bx + buttonSize - 4.0f,
+                        bx + buttonSize - 3.0f,
                         by + 3.0f,
                         1.0f);
                 }
@@ -260,10 +243,10 @@ namespace
                 //==================================================
 
                 const float ledRadius =
-                    3.0f;
+                    2.5f;
 
                 const float ledX =
-                    w * 0.5f;
+                    bx + buttonSize * 0.5f;
 
                 const float ledY =
                     by + buttonSize * 0.5f;
@@ -271,13 +254,13 @@ namespace
                 g.setColour(
                     on
                         ? juce::Colour(
-                            105,
-                            190,
+                            125,
+                            210,
                             255)
                         : juce::Colour(
-                            25,
-                            25,
-                            25));
+                            18,
+                            18,
+                            18));
 
                 g.fillEllipse(
                     ledX - ledRadius,
@@ -289,58 +272,17 @@ namespace
                 {
                     g.setColour(
                         juce::Colour(
-                            170,
-                            225,
+                            200,
+                            235,
                             255)
-                        .withAlpha(0.8f));
+                        .withAlpha(0.75f));
 
                     g.fillEllipse(
-                        ledX - 1.3f,
-                        ledY - 1.3f,
-                        2.6f,
-                        2.6f);
+                        ledX - 1.0f,
+                        ledY - 1.0f,
+                        2.0f,
+                        2.0f);
                 }
-
-                //==================================================
-                // CLEAN / DRIVE TEXT
-                //==================================================
-
-                g.setFont(
-                    juce::Font(
-                        5.5f,
-                        juce::Font::bold));
-
-                g.setColour(
-                    on
-                        ? juce::Colour(
-                            100,
-                            100,
-                            100)
-                        : juce::Colours::white);
-
-                g.drawText(
-                    "CLEAN",
-                    2,
-                    static_cast<int>(h - 8.0f),
-                    static_cast<int>(w * 0.5f - 2.0f),
-                    7,
-                    juce::Justification::centred);
-
-                g.setColour(
-                    on
-                        ? juce::Colours::white
-                        : juce::Colour(
-                            100,
-                            100,
-                            100));
-
-                g.drawText(
-                    "DRIVE",
-                    static_cast<int>(w * 0.5f + 2.0f),
-                    static_cast<int>(h - 8.0f),
-                    static_cast<int>(w * 0.5f - 4.0f),
-                    7,
-                    juce::Justification::centred);
 
                 return;
             }
@@ -572,32 +514,85 @@ AmpSimAudioProcessorEditor(
     // KNOBS
     //==============================================================
 
-    setupKnob(gainKnob, 0.0, 10.0, 0.01);
-    setupKnob(bassKnob, -12.0, 12.0, 0.01);
-    setupKnob(midKnob, -12.0, 12.0, 0.01);
-    setupKnob(hiKnob, -12.0, 12.0, 0.01);
-    setupKnob(volumeKnob, 0.0, 10.0, 0.01);
+    setupKnob(
+        gainKnob,
+        0.0,
+        10.0,
+        0.01);
+
+    setupKnob(
+        bassKnob,
+        -12.0,
+        12.0,
+        0.01);
+
+    setupKnob(
+        midKnob,
+        -12.0,
+        12.0,
+        0.01);
+
+    setupKnob(
+        hiKnob,
+        -12.0,
+        12.0,
+        0.01);
+
+    setupKnob(
+        volumeKnob,
+        0.0,
+        10.0,
+        0.01);
 
     //==============================================================
     // LABELS
     //==============================================================
 
-    setupLabel(inputLabel, "INPUT");
-    setupLabel(gainLabel, "GAIN");
-    setupLabel(bassLabel, "BASS");
-    setupLabel(midLabel, "MID");
-    setupLabel(hiLabel, "HI");
-    setupLabel(volumeLabel, "VOLUME");
-    setupLabel(modeLabel, "MODE");
-    setupLabel(ampLabel, "AMP");
+    setupLabel(
+        inputLabel,
+        "INPUT");
+
+    setupLabel(
+        gainLabel,
+        "GAIN");
+
+    setupLabel(
+        bassLabel,
+        "BASS");
+
+    setupLabel(
+        midLabel,
+        "MID");
+
+    setupLabel(
+        hiLabel,
+        "HI");
+
+    setupLabel(
+        volumeLabel,
+        "VOLUME");
+
+    setupLabel(
+        modeLabel,
+        "MODE");
+
+    setupLabel(
+        ampLabel,
+        "AMP");
 
     //==============================================================
     // MODE PUSH BUTTON
+    //
+    // Released = CLEAN
+    // Pressed  = DRIVE
+    //
+    // No visible CLEAN / DRIVE text.
     //==============================================================
 
-    modeSwitch.setButtonText("CLEAN");
+    modeSwitch.setButtonText("");
 
-    modeSwitch.setClickingTogglesState(true);
+    modeSwitch.setClickingTogglesState(
+        true);
 
     modeSwitch.setToggleState(
         false,
@@ -606,7 +601,8 @@ AmpSimAudioProcessorEditor(
     modeSwitch.setLookAndFeel(
         &toggleLookAndFeel);
 
-    addAndMakeVisible(modeSwitch);
+    addAndMakeVisible(
+        modeSwitch);
 
     modeAttachment =
         std::make_unique<
@@ -621,10 +617,7 @@ AmpSimAudioProcessorEditor(
             isDriveMode =
                 modeSwitch.getToggleState();
 
-            modeSwitch.setButtonText(
-                isDriveMode
-                    ? "DRIVE"
-                    : "CLEAN");
+            modeSwitch.setButtonText("");
 
             modeSwitch.repaint();
         };
@@ -633,9 +626,11 @@ AmpSimAudioProcessorEditor(
     // AMP SWITCH
     //==============================================================
 
-    ampSwitch.setButtonText("ON");
+    ampSwitch.setButtonText(
+        "ON");
 
-    ampSwitch.setClickingTogglesState(true);
+    ampSwitch.setClickingTogglesState(
+        true);
 
     ampSwitch.setToggleState(
         true,
@@ -644,7 +639,8 @@ AmpSimAudioProcessorEditor(
     ampSwitch.setLookAndFeel(
         &toggleLookAndFeel);
 
-    addAndMakeVisible(ampSwitch);
+    addAndMakeVisible(
+        ampSwitch);
 
     ampAttachment =
         std::make_unique<
@@ -717,10 +713,7 @@ AmpSimAudioProcessorEditor(
     ampIsOn =
         ampSwitch.getToggleState();
 
-    modeSwitch.setButtonText(
-        isDriveMode
-            ? "DRIVE"
-            : "CLEAN");
+    modeSwitch.setButtonText("");
 
     ampSwitch.setButtonText(
         ampIsOn
@@ -778,7 +771,8 @@ void AmpSimAudioProcessorEditor::setupKnob(
         true,
         this);
 
-    addAndMakeVisible(slider);
+    addAndMakeVisible(
+        slider);
 }
 
 //==================================================================
@@ -809,7 +803,8 @@ void AmpSimAudioProcessorEditor::setupLabel(
         false,
         false);
 
-    addAndMakeVisible(label);
+    addAndMakeVisible(
+        label);
 }
 
 //==================================================================
@@ -828,7 +823,8 @@ RGKnobLookAndFeel::drawRotarySlider(
     float rotaryEndAngle,
     juce::Slider& slider)
 {
-    juce::ignoreUnused(slider);
+    juce::ignoreUnused(
+        slider);
 
     const float size =
         static_cast<float>(
@@ -1065,40 +1061,50 @@ void AmpSimAudioProcessorEditor::resized()
             gainX - knobSize * 0.5f),
         static_cast<int>(
             controlY - knobSize * 0.5f),
-        static_cast<int>(knobSize),
-        static_cast<int>(knobSize));
+        static_cast<int>(
+            knobSize),
+        static_cast<int>(
+            knobSize));
 
     bassKnob.setBounds(
         static_cast<int>(
             bassX - knobSize * 0.5f),
         static_cast<int>(
             controlY - knobSize * 0.5f),
-        static_cast<int>(knobSize),
-        static_cast<int>(knobSize));
+        static_cast<int>(
+            knobSize),
+        static_cast<int>(
+            knobSize));
 
     midKnob.setBounds(
         static_cast<int>(
             midX - knobSize * 0.5f),
         static_cast<int>(
             controlY - knobSize * 0.5f),
-        static_cast<int>(knobSize),
-        static_cast<int>(knobSize));
+        static_cast<int>(
+            knobSize),
+        static_cast<int>(
+            knobSize));
 
     hiKnob.setBounds(
         static_cast<int>(
             hiX - knobSize * 0.5f),
         static_cast<int>(
             controlY - knobSize * 0.5f),
-        static_cast<int>(knobSize),
-        static_cast<int>(knobSize));
+        static_cast<int>(
+            knobSize),
+        static_cast<int>(
+            knobSize));
 
     volumeKnob.setBounds(
         static_cast<int>(
             volumeX - knobSize * 0.5f),
         static_cast<int>(
             controlY - knobSize * 0.5f),
-        static_cast<int>(knobSize),
-        static_cast<int>(knobSize));
+        static_cast<int>(
+            knobSize),
+        static_cast<int>(
+            knobSize));
 
     //==============================================================
     // LABELS ABOVE CONTROLS
