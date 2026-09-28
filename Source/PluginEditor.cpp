@@ -14,32 +14,33 @@ namespace
     constexpr int editorHeight = 500;
 
     //==============================================================
-    // PROPORTIONAL CONTROL POSITIONS
+    // CONTROL POSITIONS
     //
-    // INPUT → GAIN → MODE → BASS → MID → HI → VOLUME → AMP
+    // 50 px center-to-center spacing
+    // Entire control group centered in 800 px panel.
+    //
+    // INPUT  205
+    // GAIN   255
+    // MODE   305
+    // BASS   355
+    // MID    405
+    // HI     455
+    // VOLUME 505
+    // AMP    555
+    // LED    595
     //==============================================================
 
-    constexpr float inputX  = 100.0f;
-    constexpr float gainX   = 190.0f;
-    constexpr float modeX   = 280.0f;
-    constexpr float bassX   = 370.0f;
-    constexpr float midX    = 460.0f;
-    constexpr float hiX     = 550.0f;
-    constexpr float volumeX = 640.0f;
-    constexpr float ampX    = 730.0f;
+    constexpr float inputX  = 205.0f;
+    constexpr float gainX   = 255.0f;
+    constexpr float modeX   = 305.0f;
+    constexpr float bassX   = 355.0f;
+    constexpr float midX    = 405.0f;
+    constexpr float hiX     = 455.0f;
+    constexpr float volumeX = 505.0f;
+    constexpr float ampX    = 555.0f;
 
     constexpr float controlY = 330.0f;
-
     constexpr float knobSize = 36.0f;
-
-    //==============================================================
-    // KNOB ROTATION
-    //
-    // 270° total sweep
-    // Minimum = approximately 7 o'clock
-    // Center  = 12 o'clock
-    // Maximum = approximately 5 o'clock
-    //==============================================================
 
     constexpr float knobStartAngle =
         juce::MathConstants<float>::pi * 0.75f;
@@ -55,7 +56,6 @@ namespace
         : public juce::LookAndFeel_V4
     {
     public:
-
         void drawToggleButton(
             juce::Graphics& g,
             juce::ToggleButton& button,
@@ -80,10 +80,7 @@ namespace
                     == "AMP_SWITCH";
 
             //======================================================
-            // MODE
-            //
-            // Released = CLEAN
-            // Pressed  = DRIVE
+            // MODE SWITCH
             //======================================================
 
             if (! isAmp)
@@ -97,7 +94,6 @@ namespace
                     (h - buttonSize) * 0.5f;
 
                 // Shadow
-
                 g.setColour(
                     juce::Colour(
                         0,
@@ -112,12 +108,9 @@ namespace
                     buttonSize,
                     2.0f);
 
-                //==================================================
-                // DRIVE / PRESSED
-                //==================================================
-
                 if (on)
                 {
+                    // Blue body
                     g.setColour(
                         juce::Colour(
                             20,
@@ -131,8 +124,7 @@ namespace
                         buttonSize - 1.0f,
                         2.0f);
 
-                    // Blue edge
-
+                    // Blue border
                     g.setColour(
                         juce::Colour(
                             85,
@@ -147,8 +139,7 @@ namespace
                         2.0f,
                         0.8f);
 
-                    // Inner surface
-
+                    // Inner blue
                     g.setColour(
                         juce::Colour(
                             45,
@@ -163,7 +154,6 @@ namespace
                         1.2f);
 
                     // Highlight
-
                     g.setColour(
                         juce::Colour(
                             180,
@@ -180,10 +170,7 @@ namespace
                 }
                 else
                 {
-                    //==================================================
-                    // CLEAN / RELEASED
-                    //==================================================
-
+                    // Off body
                     g.setColour(
                         juce::Colour(
                             45,
@@ -197,8 +184,7 @@ namespace
                         buttonSize,
                         2.0f);
 
-                    // Metal edge
-
+                    // Border
                     g.setColour(
                         juce::Colour(
                             145,
@@ -214,7 +200,6 @@ namespace
                         0.8f);
 
                     // Highlight
-
                     g.setColour(
                         juce::Colour(
                             205,
@@ -230,10 +215,7 @@ namespace
                         0.8f);
                 }
 
-                //==================================================
-                // MODE CENTER LED
-                //==================================================
-
+                // Small indicator LED
                 const float ledRadius = 2.0f;
 
                 const float ledX =
@@ -280,10 +262,6 @@ namespace
 
             //======================================================
             // AMP SWITCH
-            //
-            // Physical vertical toggle.
-            // No ON/OFF text.
-            // Red LED is the status indicator.
             //======================================================
 
             const float centerX =
@@ -294,10 +272,7 @@ namespace
                     ? 11.0f
                     : h - 11.0f;
 
-            //======================================================
-            // VERTICAL SLOT
-            //======================================================
-
+            // Slot
             g.setColour(
                 juce::Colour(
                     2,
@@ -311,10 +286,7 @@ namespace
                 h - 10.0f,
                 3.5f);
 
-            //======================================================
-            // SLOT HIGHLIGHT
-            //======================================================
-
+            // Slot highlight
             g.setColour(
                 juce::Colour(
                     75,
@@ -328,10 +300,7 @@ namespace
                 h - 6.0f,
                 1.0f);
 
-            //======================================================
-            // METAL WASHER
-            //======================================================
-
+            // Switch knob
             g.setColour(
                 juce::Colour(
                     55,
@@ -357,10 +326,7 @@ namespace
                 16.0f,
                 1.0f);
 
-            //======================================================
-            // METAL LEVER
-            //======================================================
-
+            // Lever
             const float leverLength =
                 12.0f;
 
@@ -369,8 +335,7 @@ namespace
                     ? switchY - leverLength
                     : switchY + leverLength;
 
-            // Shadow
-
+            // Lever shadow
             g.setColour(
                 juce::Colour(
                     0,
@@ -385,8 +350,7 @@ namespace
                 endY + 1.3f,
                 4.4f);
 
-            // Lever
-
+            // Main lever
             g.setColour(
                 juce::Colour(
                     210,
@@ -401,7 +365,6 @@ namespace
                 4.0f);
 
             // Highlight
-
             g.setColour(
                 juce::Colour(
                     250,
@@ -415,10 +378,7 @@ namespace
                 endY - 0.6f,
                 1.0f);
 
-            //======================================================
-            // LEVER TIP
-            //======================================================
-
+            // Tip
             g.setColour(
                 juce::Colour(
                     150,
@@ -448,9 +408,9 @@ namespace
     RGToggleLookAndFeel toggleLookAndFeel;
 }
 
-//==================================================================
+//==============================================================
 // CONSTRUCTOR
-//==================================================================
+//==============================================================
 
 AmpSimAudioProcessorEditor::
 AmpSimAudioProcessorEditor(
@@ -462,18 +422,18 @@ AmpSimAudioProcessorEditor(
         editorWidth,
         editorHeight);
 
-    //==============================================================
+    //============================================================
     // BACKGROUND
-    //==============================================================
+    //============================================================
 
     backgroundImage =
         juce::ImageCache::getFromMemory(
             BinaryData::rg100_jpg,
             BinaryData::rg100_jpgSize);
 
-    //==============================================================
+    //============================================================
     // KNOBS
-    //==============================================================
+    //============================================================
 
     setupKnob(
         gainKnob,
@@ -505,26 +465,50 @@ AmpSimAudioProcessorEditor(
         10.0,
         0.01);
 
-    //==============================================================
+    //============================================================
     // LABELS
-    //==============================================================
+    //============================================================
 
-    setupLabel(inputLabel,  "INPUT");
-    setupLabel(gainLabel,   "GAIN");
-    setupLabel(modeLabel,   "MODE");
-    setupLabel(bassLabel,   "BASS");
-    setupLabel(midLabel,    "MID");
-    setupLabel(hiLabel,     "HI");
-    setupLabel(volumeLabel, "VOLUME");
-    setupLabel(ampLabel,    "AMP");
+    setupLabel(
+        inputLabel,
+        "INPUT");
 
-    //==============================================================
-    // MODE PUSH BUTTON
-    //==============================================================
+    setupLabel(
+        gainLabel,
+        "GAIN");
+
+    setupLabel(
+        modeLabel,
+        "MODE");
+
+    setupLabel(
+        bassLabel,
+        "BASS");
+
+    setupLabel(
+        midLabel,
+        "MID");
+
+    setupLabel(
+        hiLabel,
+        "HI");
+
+    setupLabel(
+        volumeLabel,
+        "VOLUME");
+
+    setupLabel(
+        ampLabel,
+        "AMP");
+
+    //============================================================
+    // MODE SWITCH
+    //============================================================
 
     modeSwitch.setButtonText("");
 
-    modeSwitch.setClickingTogglesState(true);
+    modeSwitch.setClickingTogglesState(
+        true);
 
     modeSwitch.setToggleState(
         false,
@@ -552,19 +536,21 @@ AmpSimAudioProcessorEditor(
             modeSwitch.setButtonText("");
 
             modeSwitch.repaint();
+
             repaint();
         };
 
-    //==============================================================
+    //============================================================
     // AMP SWITCH
-    //==============================================================
+    //============================================================
 
     ampSwitch.setButtonText("");
 
     ampSwitch.setComponentID(
         "AMP_SWITCH");
 
-    ampSwitch.setClickingTogglesState(true);
+    ampSwitch.setClickingTogglesState(
+        true);
 
     ampSwitch.setToggleState(
         true,
@@ -590,12 +576,13 @@ AmpSimAudioProcessorEditor(
                 ampSwitch.getToggleState();
 
             ampSwitch.repaint();
+
             repaint();
         };
 
-    //==============================================================
-    // SLIDER ATTACHMENTS
-    //==============================================================
+    //============================================================
+    // PARAMETER ATTACHMENTS
+    //============================================================
 
     gainAttachment =
         std::make_unique<
@@ -632,9 +619,9 @@ AmpSimAudioProcessorEditor(
                 "VOLUME",
                 volumeKnob);
 
-    //==============================================================
+    //============================================================
     // INITIAL STATE
-    //==============================================================
+    //============================================================
 
     isDriveMode =
         modeSwitch.getToggleState();
@@ -643,15 +630,14 @@ AmpSimAudioProcessorEditor(
         ampSwitch.getToggleState();
 
     modeSwitch.setButtonText("");
-
     ampSwitch.setButtonText("");
 
     repaint();
 }
 
-//==================================================================
+//==============================================================
 // DESTRUCTOR
-//==================================================================
+//==============================================================
 
 AmpSimAudioProcessorEditor::
 ~AmpSimAudioProcessorEditor()
@@ -660,9 +646,9 @@ AmpSimAudioProcessorEditor::
     ampSwitch.setLookAndFeel(nullptr);
 }
 
-//==================================================================
+//==============================================================
 // KNOB SETUP
-//==================================================================
+//==============================================================
 
 void AmpSimAudioProcessorEditor::setupKnob(
     juce::Slider& slider,
@@ -672,8 +658,6 @@ void AmpSimAudioProcessorEditor::setupKnob(
 {
     slider.setSliderStyle(
         juce::Slider::RotaryHorizontalVerticalDrag);
-
-    // TRUE = HARD STOP AT MIN/MAX
 
     slider.setRotaryParameters(
         knobStartAngle,
@@ -703,9 +687,9 @@ void AmpSimAudioProcessorEditor::setupKnob(
         slider);
 }
 
-//==================================================================
+//==============================================================
 // LABEL SETUP
-//==================================================================
+//==============================================================
 
 void AmpSimAudioProcessorEditor::setupLabel(
     juce::Label& label,
@@ -735,9 +719,9 @@ void AmpSimAudioProcessorEditor::setupLabel(
         label);
 }
 
-//==================================================================
-// KNOB LOOK AND FEEL
-//==================================================================
+//==============================================================
+// KNOB DRAWING
+//==============================================================
 
 void AmpSimAudioProcessorEditor::
 RGKnobLookAndFeel::drawRotarySlider(
@@ -770,10 +754,7 @@ RGKnobLookAndFeel::drawRotarySlider(
     const float radius =
         size * 0.5f - 2.0f;
 
-    //==============================================================
-    // OUTER RING
-    //==============================================================
-
+    // Outer dark ring
     g.setColour(
         juce::Colour(
             20,
@@ -786,10 +767,7 @@ RGKnobLookAndFeel::drawRotarySlider(
         radius * 2.0f,
         radius * 2.0f);
 
-    //==============================================================
-    // WHITE KNOB
-    //==============================================================
-
+    // White knob
     const float knobRadius =
         radius - 3.0f;
 
@@ -802,10 +780,7 @@ RGKnobLookAndFeel::drawRotarySlider(
         knobRadius * 2.0f,
         knobRadius * 2.0f);
 
-    //==============================================================
-    // POINTER
-    //==============================================================
-
+    // Pointer
     const float angle =
         rotaryStartAngle
         + sliderPosProportional
@@ -824,10 +799,7 @@ RGKnobLookAndFeel::drawRotarySlider(
         + std::sin(angle)
           * pointerLength;
 
-    //==============================================================
-    // POINTER SHADOW
-    //==============================================================
-
+    // Pointer shadow
     g.setColour(
         juce::Colour(
             0,
@@ -842,10 +814,7 @@ RGKnobLookAndFeel::drawRotarySlider(
         pointerY + 0.8f,
         2.8f);
 
-    //==============================================================
-    // POINTER
-    //==============================================================
-
+    // Pointer
     g.setColour(
         juce::Colours::black);
 
@@ -856,10 +825,7 @@ RGKnobLookAndFeel::drawRotarySlider(
         pointerY,
         2.2f);
 
-    //==============================================================
-    // CENTER CAP
-    //==============================================================
-
+    // Center
     g.setColour(
         juce::Colour(
             35,
@@ -873,16 +839,16 @@ RGKnobLookAndFeel::drawRotarySlider(
         4.0f);
 }
 
-//==================================================================
+//==============================================================
 // PAINT
-//==================================================================
+//==============================================================
 
 void AmpSimAudioProcessorEditor::paint(
     juce::Graphics& g)
 {
-    //==============================================================
+    //============================================================
     // BACKGROUND
-    //==============================================================
+    //============================================================
 
     if (backgroundImage.isValid())
     {
@@ -900,9 +866,9 @@ void AmpSimAudioProcessorEditor::paint(
                 18));
     }
 
-    //==============================================================
+    //============================================================
     // INPUT JACK
-    //==============================================================
+    //============================================================
 
     constexpr float jackRadius =
         11.0f;
@@ -932,11 +898,9 @@ void AmpSimAudioProcessorEditor::paint(
         jackRadius * 2.0f,
         2.0f);
 
-    //==============================================================
+    //============================================================
     // AMP RED LED
-    //
-    // Positioned to the RIGHT of the AMP switch.
-    //==============================================================
+    //============================================================
 
     constexpr float ledX =
         ampX + 40.0f;
@@ -947,10 +911,7 @@ void AmpSimAudioProcessorEditor::paint(
     constexpr float ledRadius =
         7.0f;
 
-    //==============================================================
-    // OUTER LED RING
-    //==============================================================
-
+    // Outer shadow
     g.setColour(
         juce::Colour(
             5,
@@ -963,10 +924,7 @@ void AmpSimAudioProcessorEditor::paint(
         (ledRadius + 2.0f) * 2.0f,
         (ledRadius + 2.0f) * 2.0f);
 
-    //==============================================================
-    // RED LED
-    //==============================================================
-
+    // LED
     g.setColour(
         ampIsOn
             ? juce::Colour(
@@ -984,10 +942,7 @@ void AmpSimAudioProcessorEditor::paint(
         ledRadius * 2.0f,
         ledRadius * 2.0f);
 
-    //==============================================================
-    // BRIGHT RED HIGHLIGHT WHEN ON
-    //==============================================================
-
+    // LED highlight
     if (ampIsOn)
     {
         g.setColour(
@@ -1004,10 +959,7 @@ void AmpSimAudioProcessorEditor::paint(
             4.4f);
     }
 
-    //==============================================================
-    // LED BORDER
-    //==============================================================
-
+    // LED border
     g.setColour(
         juce::Colour(
             20,
@@ -1022,15 +974,15 @@ void AmpSimAudioProcessorEditor::paint(
         1.2f);
 }
 
-//==================================================================
+//==============================================================
 // RESIZED
-//==================================================================
+//==============================================================
 
 void AmpSimAudioProcessorEditor::resized()
 {
-    //==============================================================
+    //============================================================
     // KNOBS
-    //==============================================================
+    //============================================================
 
     gainKnob.setBounds(
         static_cast<int>(
@@ -1082,12 +1034,9 @@ void AmpSimAudioProcessorEditor::resized()
         static_cast<int>(
             knobSize));
 
-    //==============================================================
+    //============================================================
     // LABELS
-    //
-    // All labels use the same proportional control positions.
-    // Positioned 8 px lower / closer to controls.
-    //==============================================================
+    //============================================================
 
     constexpr int labelWidth =
         60;
@@ -1155,11 +1104,9 @@ void AmpSimAudioProcessorEditor::resized()
         labelWidth,
         labelHeight);
 
-    //==============================================================
-    // MODE
-    //
-    // Now physically positioned between GAIN and BASS.
-    //==============================================================
+    //============================================================
+    // MODE SWITCH
+    //============================================================
 
     modeSwitch.setBounds(
         static_cast<int>(
@@ -1169,9 +1116,9 @@ void AmpSimAudioProcessorEditor::resized()
         44,
         22);
 
-    //==============================================================
+    //============================================================
     // AMP SWITCH
-    //==============================================================
+    //============================================================
 
     ampSwitch.setBounds(
         static_cast<int>(
