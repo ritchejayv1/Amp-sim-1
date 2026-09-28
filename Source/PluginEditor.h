@@ -19,7 +19,7 @@ public:
 private:
 
     //==============================================================
-    // Custom knob drawing
+    // CUSTOM KNOB LOOK AND FEEL
     //==============================================================
 
     class RGKnobLookAndFeel : public juce::LookAndFeel_V4
@@ -38,7 +38,7 @@ private:
     };
 
     //==============================================================
-    // Knobs
+    // KNOBS
     //==============================================================
 
     juce::Slider gainKnob;
@@ -63,14 +63,10 @@ private:
 
     juce::ToggleButton ampSwitch;
 
-    //==============================================================
-    // AMP LED
-    //==============================================================
-
     bool ampIsOn = true;
 
     //==============================================================
-    // Labels
+    // LABELS
     //==============================================================
 
     juce::Label inputLabel;
@@ -83,7 +79,7 @@ private:
     juce::Label ampLabel;
 
     //==============================================================
-    // APVTS Slider Attachments
+    // APVTS SLIDER ATTACHMENTS
     //==============================================================
 
     std::unique_ptr<
@@ -107,19 +103,31 @@ private:
         volumeAttachment;
 
     //==============================================================
-    // Look and Feel
+    // APVTS BUTTON ATTACHMENTS
+    //==============================================================
+
+    std::unique_ptr<
+        juce::AudioProcessorValueTreeState::ButtonAttachment>
+        modeAttachment;
+
+    std::unique_ptr<
+        juce::AudioProcessorValueTreeState::ButtonAttachment>
+        ampAttachment;
+
+    //==============================================================
+    // LOOK AND FEEL
     //==============================================================
 
     RGKnobLookAndFeel knobLookAndFeel;
 
     //==============================================================
-    // Background
+    // BACKGROUND IMAGE
     //==============================================================
 
     juce::Image backgroundImage;
 
     //==============================================================
-    // Helpers
+    // HELPERS
     //==============================================================
 
     void setupKnob(
@@ -132,6 +140,8 @@ private:
         juce::Label& label,
         const juce::String& text);
 
+    //==============================================================
+    // PROCESSOR
     //==============================================================
 
     AmpSimAudioProcessor& audioProcessor;
