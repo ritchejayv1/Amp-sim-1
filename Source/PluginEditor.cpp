@@ -14,17 +14,19 @@ namespace
     constexpr int editorHeight = 500;
 
     //==============================================================
-    // CONTROL POSITIONS
+    // PROPORTIONAL CONTROL POSITIONS
+    //
+    // INPUT → GAIN → MODE → BASS → MID → HI → VOLUME → AMP
     //==============================================================
 
-    constexpr float inputX  = 130.0f;
-    constexpr float gainX   = 200.0f;
-    constexpr float bassX   = 270.0f;
-    constexpr float midX    = 340.0f;
-    constexpr float hiX     = 410.0f;
-    constexpr float volumeX = 480.0f;
-    constexpr float modeX   = 550.0f;
-    constexpr float ampX    = 620.0f;
+    constexpr float inputX  = 100.0f;
+    constexpr float gainX   = 190.0f;
+    constexpr float modeX   = 280.0f;
+    constexpr float bassX   = 370.0f;
+    constexpr float midX    = 460.0f;
+    constexpr float hiX     = 550.0f;
+    constexpr float volumeX = 640.0f;
+    constexpr float ampX    = 730.0f;
 
     constexpr float controlY = 330.0f;
 
@@ -73,8 +75,6 @@ namespace
             const bool on =
                 button.getToggleState();
 
-            // AMP is identified by Component ID,
-            // because it has no visible ON/OFF text.
             const bool isAmp =
                 button.getComponentID()
                     == "AMP_SWITCH";
@@ -82,7 +82,6 @@ namespace
             //======================================================
             // MODE
             //
-            // Small square push button
             // Released = CLEAN
             // Pressed  = DRIVE
             //======================================================
@@ -512,11 +511,11 @@ AmpSimAudioProcessorEditor(
 
     setupLabel(inputLabel,  "INPUT");
     setupLabel(gainLabel,   "GAIN");
+    setupLabel(modeLabel,   "MODE");
     setupLabel(bassLabel,   "BASS");
     setupLabel(midLabel,    "MID");
     setupLabel(hiLabel,     "HI");
     setupLabel(volumeLabel, "VOLUME");
-    setupLabel(modeLabel,   "MODE");
     setupLabel(ampLabel,    "AMP");
 
     //==============================================================
@@ -560,11 +559,8 @@ AmpSimAudioProcessorEditor(
     // AMP SWITCH
     //==============================================================
 
-    // No visible ON/OFF text.
     ampSwitch.setButtonText("");
 
-    // Component ID tells the LookAndFeel
-    // that this button is the AMP switch.
     ampSwitch.setComponentID(
         "AMP_SWITCH");
 
@@ -937,13 +933,9 @@ void AmpSimAudioProcessorEditor::paint(
         2.0f);
 
     //==============================================================
-    // AMP LED
+    // AMP RED LED
     //
-    // LARGE RED LED
-    // ON  = BRIGHT RED
-    // OFF = DARK RED
-    //
-    // LED moved farther to the right of the AMP switch.
+    // Positioned to the RIGHT of the AMP switch.
     //==============================================================
 
     constexpr float ledX =
@@ -1093,7 +1085,8 @@ void AmpSimAudioProcessorEditor::resized()
     //==============================================================
     // LABELS
     //
-    // Moved 8 px lower / closer to controls.
+    // All labels use the same proportional control positions.
+    // Positioned 8 px lower / closer to controls.
     //==============================================================
 
     constexpr int labelWidth =
@@ -1116,6 +1109,13 @@ void AmpSimAudioProcessorEditor::resized()
     gainLabel.setBounds(
         static_cast<int>(
             gainX - labelWidth * 0.5f),
+        labelY,
+        labelWidth,
+        labelHeight);
+
+    modeLabel.setBounds(
+        static_cast<int>(
+            modeX - labelWidth * 0.5f),
         labelY,
         labelWidth,
         labelHeight);
@@ -1148,13 +1148,6 @@ void AmpSimAudioProcessorEditor::resized()
         labelWidth,
         labelHeight);
 
-    modeLabel.setBounds(
-        static_cast<int>(
-            modeX - labelWidth * 0.5f),
-        labelY,
-        labelWidth,
-        labelHeight);
-
     ampLabel.setBounds(
         static_cast<int>(
             ampX - labelWidth * 0.5f),
@@ -1164,6 +1157,8 @@ void AmpSimAudioProcessorEditor::resized()
 
     //==============================================================
     // MODE
+    //
+    // Now physically positioned between GAIN and BASS.
     //==============================================================
 
     modeSwitch.setBounds(
@@ -1176,8 +1171,6 @@ void AmpSimAudioProcessorEditor::resized()
 
     //==============================================================
     // AMP SWITCH
-    //
-    // Slightly larger physical switch.
     //==============================================================
 
     ampSwitch.setBounds(
