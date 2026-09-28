@@ -34,14 +34,16 @@ namespace
     // KNOB ROTATION
     //
     // 270° total sweep
-    // Center/default position = 12 o'clock
+    // Minimum = approximately 7 o'clock
+    // Center  = 12 o'clock
+    // Maximum = approximately 5 o'clock
     //==============================================================
 
     constexpr float knobStartAngle =
-        juce::MathConstants<float>::pi * 0.75f;   // 135°
+        juce::MathConstants<float>::pi * 0.75f;
 
     constexpr float knobEndAngle =
-        juce::MathConstants<float>::pi * 2.25f;   // 405°
+        juce::MathConstants<float>::pi * 2.25f;
 
     //==============================================================
     // TOGGLE LOOK AND FEEL
@@ -78,21 +80,16 @@ namespace
                     .equalsIgnoreCase("OFF");
 
             //======================================================
-            // MODE = SQUARE PUSH BUTTON
+            // MODE
             //
+            // Small square push button
             // Released = CLEAN
             // Pressed  = DRIVE
-            //
-            // No CLEAN / DRIVE text
-            // No surrounding panel
             //======================================================
 
             if (! isAmp)
             {
-                const float buttonSize =
-                    juce::jmin(
-                        24.0f,
-                        h - 2.0f);
+                constexpr float buttonSize = 16.0f;
 
                 const float bx =
                     (w - buttonSize) * 0.5f;
@@ -100,9 +97,7 @@ namespace
                 const float by =
                     (h - buttonSize) * 0.5f;
 
-                //==================================================
-                // BUTTON SHADOW
-                //==================================================
+                // Shadow
 
                 g.setColour(
                     juce::Colour(
@@ -112,20 +107,18 @@ namespace
                         .withAlpha(0.9f));
 
                 g.fillRoundedRectangle(
-                    bx + 1.5f,
-                    by + 2.0f,
+                    bx + 1.2f,
+                    by + 1.8f,
                     buttonSize,
                     buttonSize,
-                    2.5f);
+                    2.0f);
 
                 //==================================================
-                // PRESSED / DRIVE
+                // DRIVE / PRESSED
                 //==================================================
 
                 if (on)
                 {
-                    // Dark blue body
-
                     g.setColour(
                         juce::Colour(
                             20,
@@ -137,9 +130,9 @@ namespace
                         by + 1.0f,
                         buttonSize,
                         buttonSize - 1.0f,
-                        2.5f);
+                        2.0f);
 
-                    // Blue outer edge
+                    // Blue edge
 
                     g.setColour(
                         juce::Colour(
@@ -152,10 +145,10 @@ namespace
                         by + 1.0f,
                         buttonSize,
                         buttonSize - 1.0f,
-                        2.5f,
-                        1.0f);
+                        2.0f,
+                        0.8f);
 
-                    // Inner active surface
+                    // Inner surface
 
                     g.setColour(
                         juce::Colour(
@@ -164,13 +157,13 @@ namespace
                             225));
 
                     g.fillRoundedRectangle(
-                        bx + 3.0f,
-                        by + 4.0f,
-                        buttonSize - 6.0f,
-                        buttonSize - 7.0f,
-                        1.5f);
+                        bx + 2.0f,
+                        by + 3.0f,
+                        buttonSize - 4.0f,
+                        buttonSize - 5.0f,
+                        1.2f);
 
-                    // Top highlight
+                    // Highlight
 
                     g.setColour(
                         juce::Colour(
@@ -180,16 +173,16 @@ namespace
                         .withAlpha(0.65f));
 
                     g.drawLine(
-                        bx + 4.0f,
-                        by + 4.0f,
-                        bx + buttonSize - 4.0f,
-                        by + 4.0f,
-                        1.0f);
+                        bx + 3.0f,
+                        by + 3.0f,
+                        bx + buttonSize - 3.0f,
+                        by + 3.0f,
+                        0.8f);
                 }
                 else
                 {
                     //==================================================
-                    // RELEASED / CLEAN
+                    // CLEAN / RELEASED
                     //==================================================
 
                     g.setColour(
@@ -203,7 +196,7 @@ namespace
                         by,
                         buttonSize,
                         buttonSize,
-                        2.5f);
+                        2.0f);
 
                     // Metal edge
 
@@ -218,10 +211,10 @@ namespace
                         by,
                         buttonSize,
                         buttonSize,
-                        2.5f,
-                        1.0f);
+                        2.0f,
+                        0.8f);
 
-                    // Top highlight
+                    // Highlight
 
                     g.setColour(
                         juce::Colour(
@@ -231,19 +224,18 @@ namespace
                         .withAlpha(0.4f));
 
                     g.drawLine(
-                        bx + 3.0f,
-                        by + 3.0f,
-                        bx + buttonSize - 3.0f,
-                        by + 3.0f,
-                        1.0f);
+                        bx + 2.0f,
+                        by + 2.0f,
+                        bx + buttonSize - 2.0f,
+                        by + 2.0f,
+                        0.8f);
                 }
 
                 //==================================================
-                // CENTER INDICATOR
+                // MODE CENTER LED
                 //==================================================
 
-                const float ledRadius =
-                    2.5f;
+                const float ledRadius = 2.0f;
 
                 const float ledX =
                     bx + buttonSize * 0.5f;
@@ -278,10 +270,10 @@ namespace
                         .withAlpha(0.75f));
 
                     g.fillEllipse(
-                        ledX - 1.0f,
-                        ledY - 1.0f,
-                        2.0f,
-                        2.0f);
+                        ledX - 0.8f,
+                        ledY - 0.8f,
+                        1.6f,
+                        1.6f);
                 }
 
                 return;
@@ -289,6 +281,8 @@ namespace
 
             //======================================================
             // AMP SWITCH
+            //
+            // Slightly larger physical toggle
             //======================================================
 
             const float centerX =
@@ -296,7 +290,7 @@ namespace
 
             const float switchY =
                 on
-                    ? 10.0f
+                    ? 11.0f
                     : h - 11.0f;
 
             //======================================================
@@ -310,11 +304,11 @@ namespace
                     2));
 
             g.fillRoundedRectangle(
-                centerX - 3.0f,
+                centerX - 3.5f,
+                5.0f,
                 7.0f,
-                6.0f,
-                h - 14.0f,
-                3.0f);
+                h - 10.0f,
+                3.5f);
 
             //======================================================
             // SLOT HIGHLIGHT
@@ -328,9 +322,9 @@ namespace
 
             g.drawLine(
                 centerX - 0.5f,
-                8.0f,
+                6.0f,
                 centerX - 0.5f,
-                h - 8.0f,
+                h - 6.0f,
                 1.0f);
 
             //======================================================
@@ -344,10 +338,10 @@ namespace
                     55));
 
             g.fillEllipse(
-                centerX - 7.0f,
-                switchY - 7.0f,
-                14.0f,
-                14.0f);
+                centerX - 8.0f,
+                switchY - 8.0f,
+                16.0f,
+                16.0f);
 
             g.setColour(
                 juce::Colour(
@@ -356,10 +350,10 @@ namespace
                     180));
 
             g.drawEllipse(
-                centerX - 7.0f,
-                switchY - 7.0f,
-                14.0f,
-                14.0f,
+                centerX - 8.0f,
+                switchY - 8.0f,
+                16.0f,
+                16.0f,
                 1.0f);
 
             //======================================================
@@ -367,16 +361,14 @@ namespace
             //======================================================
 
             const float leverLength =
-                11.0f;
+                12.0f;
 
             const float endY =
                 on
                     ? switchY - leverLength
                     : switchY + leverLength;
 
-            //======================================================
-            // LEVER SHADOW
-            //======================================================
+            // Shadow
 
             g.setColour(
                 juce::Colour(
@@ -386,15 +378,13 @@ namespace
                     .withAlpha(0.85f));
 
             g.drawLine(
-                centerX + 1.2f,
-                switchY + 1.2f,
-                centerX + 1.2f,
-                endY + 1.2f,
-                4.0f);
+                centerX + 1.3f,
+                switchY + 1.3f,
+                centerX + 1.3f,
+                endY + 1.3f,
+                4.4f);
 
-            //======================================================
-            // LEVER
-            //======================================================
+            // Lever
 
             g.setColour(
                 juce::Colour(
@@ -407,11 +397,9 @@ namespace
                 switchY,
                 centerX,
                 endY,
-                3.6f);
+                4.0f);
 
-            //======================================================
-            // HIGHLIGHT
-            //======================================================
+            // Highlight
 
             g.setColour(
                 juce::Colour(
@@ -420,11 +408,11 @@ namespace
                     250));
 
             g.drawLine(
-                centerX - 0.5f,
-                switchY - 0.5f,
-                centerX - 0.5f,
-                endY - 0.5f,
-                0.9f);
+                centerX - 0.6f,
+                switchY - 0.6f,
+                centerX - 0.6f,
+                endY - 0.6f,
+                1.0f);
 
             //======================================================
             // LEVER TIP
@@ -437,10 +425,10 @@ namespace
                     150));
 
             g.fillEllipse(
-                centerX - 4.0f,
-                endY - 4.0f,
-                8.0f,
-                8.0f);
+                centerX - 4.5f,
+                endY - 4.5f,
+                9.0f,
+                9.0f);
 
             g.setColour(
                 juce::Colour(
@@ -449,13 +437,13 @@ namespace
                     235));
 
             g.fillEllipse(
-                centerX - 2.4f,
-                endY - 2.4f,
-                4.8f,
-                4.8f);
+                centerX - 2.7f,
+                endY - 2.7f,
+                5.4f,
+                5.4f);
 
             //======================================================
-            // ON / OFF
+            // ON / OFF TEXT
             //======================================================
 
             g.setFont(
@@ -476,9 +464,9 @@ namespace
 
             g.drawText(
                 on ? "ON" : "OFF",
-                2,
-                static_cast<int>(h - 9.0f),
-                static_cast<int>(w - 4.0f),
+                1,
+                static_cast<int>(h - 8.0f),
+                static_cast<int>(w - 2.0f),
                 7,
                 juce::Justification::centred);
         }
@@ -548,51 +536,22 @@ AmpSimAudioProcessorEditor(
     // LABELS
     //==============================================================
 
-    setupLabel(
-        inputLabel,
-        "INPUT");
-
-    setupLabel(
-        gainLabel,
-        "GAIN");
-
-    setupLabel(
-        bassLabel,
-        "BASS");
-
-    setupLabel(
-        midLabel,
-        "MID");
-
-    setupLabel(
-        hiLabel,
-        "HI");
-
-    setupLabel(
-        volumeLabel,
-        "VOLUME");
-
-    setupLabel(
-        modeLabel,
-        "MODE");
-
-    setupLabel(
-        ampLabel,
-        "AMP");
+    setupLabel(inputLabel,  "INPUT");
+    setupLabel(gainLabel,   "GAIN");
+    setupLabel(bassLabel,   "BASS");
+    setupLabel(midLabel,    "MID");
+    setupLabel(hiLabel,     "HI");
+    setupLabel(volumeLabel, "VOLUME");
+    setupLabel(modeLabel,   "MODE");
+    setupLabel(ampLabel,    "AMP");
 
     //==============================================================
     // MODE PUSH BUTTON
-    //
-    // Released = CLEAN
-    // Pressed  = DRIVE
-    //
-    // No visible CLEAN / DRIVE text.
     //==============================================================
 
     modeSwitch.setButtonText("");
 
-    modeSwitch.setClickingTogglesState(
-        true);
+    modeSwitch.setClickingTogglesState(true);
 
     modeSwitch.setToggleState(
         false,
@@ -626,11 +585,9 @@ AmpSimAudioProcessorEditor(
     // AMP SWITCH
     //==============================================================
 
-    ampSwitch.setButtonText(
-        "ON");
+    ampSwitch.setButtonText("ON");
 
-    ampSwitch.setClickingTogglesState(
-        true);
+    ampSwitch.setClickingTogglesState(true);
 
     ampSwitch.setToggleState(
         true,
@@ -747,10 +704,12 @@ void AmpSimAudioProcessorEditor::setupKnob(
     slider.setSliderStyle(
         juce::Slider::RotaryHorizontalVerticalDrag);
 
+    // TRUE = HARD STOP AT MIN/MAX
+
     slider.setRotaryParameters(
         knobStartAngle,
         knobEndAngle,
-        false);
+        true);
 
     slider.setTextBoxStyle(
         juce::Slider::NoTextBox,
@@ -823,8 +782,7 @@ RGKnobLookAndFeel::drawRotarySlider(
     float rotaryEndAngle,
     juce::Slider& slider)
 {
-    juce::ignoreUnused(
-        slider);
+    juce::ignoreUnused(slider);
 
     const float size =
         static_cast<float>(
@@ -1007,27 +965,51 @@ void AmpSimAudioProcessorEditor::paint(
 
     //==============================================================
     // AMP LED
+    //
+    // LARGE RED LED
+    // ON  = BRIGHT RED
+    // OFF = DARK RED
     //==============================================================
 
     constexpr float ledX =
-        ampX;
+        ampX + 29.0f;
 
     constexpr float ledY =
-        controlY - 17.0f;
+        controlY;
 
     constexpr float ledRadius =
-        5.0f;
+        7.0f;
+
+    //==============================================================
+    // OUTER LED RING
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            5,
+            5,
+            5));
+
+    g.fillEllipse(
+        ledX - ledRadius - 2.0f,
+        ledY - ledRadius - 2.0f,
+        (ledRadius + 2.0f) * 2.0f,
+        (ledRadius + 2.0f) * 2.0f);
+
+    //==============================================================
+    // RED LED
+    //==============================================================
 
     g.setColour(
         ampIsOn
             ? juce::Colour(
-                70,
-                220,
-                90)
+                235,
+                25,
+                25)
             : juce::Colour(
-                45,
-                45,
-                45));
+                65,
+                10,
+                10));
 
     g.fillEllipse(
         ledX - ledRadius,
@@ -1035,15 +1017,42 @@ void AmpSimAudioProcessorEditor::paint(
         ledRadius * 2.0f,
         ledRadius * 2.0f);
 
+    //==============================================================
+    // BRIGHT RED HIGHLIGHT WHEN ON
+    //==============================================================
+
+    if (ampIsOn)
+    {
+        g.setColour(
+            juce::Colour(
+                255,
+                150,
+                150)
+            .withAlpha(0.9f));
+
+        g.fillEllipse(
+            ledX - 2.2f,
+            ledY - 2.2f,
+            4.4f,
+            4.4f);
+    }
+
+    //==============================================================
+    // LED BORDER
+    //==============================================================
+
     g.setColour(
-        juce::Colours::black);
+        juce::Colour(
+            20,
+            0,
+            0));
 
     g.drawEllipse(
         ledX - ledRadius,
         ledY - ledRadius,
         ledRadius * 2.0f,
         ledRadius * 2.0f,
-        1.0f);
+        1.2f);
 }
 
 //==================================================================
@@ -1107,7 +1116,7 @@ void AmpSimAudioProcessorEditor::resized()
             knobSize));
 
     //==============================================================
-    // LABELS ABOVE CONTROLS
+    // LABELS
     //==============================================================
 
     constexpr int labelWidth =
@@ -1177,26 +1186,28 @@ void AmpSimAudioProcessorEditor::resized()
         labelHeight);
 
     //==============================================================
-    // MODE SQUARE PUSH BUTTON
+    // MODE
     //==============================================================
 
     modeSwitch.setBounds(
         static_cast<int>(
-            modeX - 32.0f),
+            modeX - 22.0f),
         static_cast<int>(
-            controlY - 15.0f),
-        64,
-        30);
+            controlY - 11.0f),
+        44,
+        22);
 
     //==============================================================
-    // AMP TOGGLE
+    // AMP SWITCH
+    //
+    // Slightly larger than before
     //==============================================================
 
     ampSwitch.setBounds(
         static_cast<int>(
-            ampX - 26.0f),
+            ampX - 30.0f),
         static_cast<int>(
-            controlY - 15.0f),
-        52,
-        30);
+            controlY - 17.0f),
+        60,
+        34);
 }
