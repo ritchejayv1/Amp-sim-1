@@ -41,7 +41,7 @@ namespace
         juce::MathConstants<float>::pi * 2.75f;
 
     //==============================================================
-    // LANEY-STYLE FRONT PANEL TOGGLE
+    // TOGGLE LOOK AND FEEL
     //==============================================================
 
     class RGToggleLookAndFeel
@@ -75,245 +75,234 @@ namespace
                     .equalsIgnoreCase("OFF");
 
             //======================================================
-            // FRONT PANEL RECESSED AREA
-            //======================================================
-
-            g.setColour(
-                juce::Colour(
-                    8,
-                    8,
-                    8));
-
-            g.fillRoundedRectangle(
-                2.0f,
-                3.0f,
-                w - 4.0f,
-                h - 6.0f,
-                3.0f);
-
-            //======================================================
-            // THIN METAL EDGE
-            //======================================================
-
-            g.setColour(
-                juce::Colour(
-                    105,
-                    105,
-                    105));
-
-            g.drawRoundedRectangle(
-                2.0f,
-                3.0f,
-                w - 4.0f,
-                h - 6.0f,
-                3.0f,
-                1.0f);
-
-            //======================================================
-            // INNER SHADOW
-            //======================================================
-
-            g.setColour(
-                juce::Colour(
-                    0,
-                    0,
-                    0));
-
-            g.drawRoundedRectangle(
-                5.0f,
-                6.0f,
-                w - 10.0f,
-                h - 12.0f,
-                2.0f,
-                2.0f);
-
-            //======================================================
-            // MODE SWITCH
+            // MODE = SQUARE PUSH BUTTON
             //======================================================
 
             if (! isAmp)
             {
-                const float centerY =
-                    h * 0.47f;
+                const float buttonSize =
+                    juce::jmin(
+                        28.0f,
+                        h - 2.0f);
 
-                const float leftPosition =
-                    21.0f;
+                const float bx =
+                    (w - buttonSize) * 0.5f;
 
-                const float rightPosition =
-                    w - 21.0f;
-
-                const float switchX =
-                    on
-                        ? rightPosition
-                        : leftPosition;
+                const float by =
+                    (h - buttonSize) * 0.5f;
 
                 //==================================================
-                // SWITCH TRACK
+                // RECESSED METAL PANEL
                 //==================================================
 
                 g.setColour(
                     juce::Colour(
-                        2,
-                        2,
-                        2));
+                        7,
+                        7,
+                        7));
 
                 g.fillRoundedRectangle(
-                    15.0f,
-                    centerY - 3.0f,
-                    w - 30.0f,
-                    6.0f,
+                    1.0f,
+                    2.0f,
+                    w - 2.0f,
+                    h - 4.0f,
+                    3.0f);
+
+                g.setColour(
+                    juce::Colour(
+                        105,
+                        105,
+                        105));
+
+                g.drawRoundedRectangle(
+                    1.0f,
+                    2.0f,
+                    w - 2.0f,
+                    h - 4.0f,
+                    3.0f,
+                    1.0f);
+
+                //==================================================
+                // BUTTON SHADOW / RECESS
+                //==================================================
+
+                g.setColour(
+                    juce::Colour(
+                        0,
+                        0,
+                        0));
+
+                g.fillRoundedRectangle(
+                    bx - 1.5f,
+                    by + 2.0f,
+                    buttonSize + 3.0f,
+                    buttonSize + 2.0f,
                     3.0f);
 
                 //==================================================
-                // TRACK HIGHLIGHT
+                // PUSH BUTTON BODY
                 //==================================================
+
+                if (on)
+                {
+                    // DRIVE ENGAGED
+
+                    g.setColour(
+                        juce::Colour(
+                            18,
+                            75,
+                            145));
+
+                    g.fillRoundedRectangle(
+                        bx,
+                        by + 1.5f,
+                        buttonSize,
+                        buttonSize - 1.5f,
+                        2.5f);
+
+                    // Blue edge
+
+                    g.setColour(
+                        juce::Colour(
+                            70,
+                            150,
+                            255));
+
+                    g.drawRoundedRectangle(
+                        bx,
+                        by + 1.5f,
+                        buttonSize,
+                        buttonSize - 1.5f,
+                        2.5f,
+                        1.0f);
+
+                    // Active center
+
+                    g.setColour(
+                        juce::Colour(
+                            45,
+                            125,
+                            235));
+
+                    g.fillRoundedRectangle(
+                        bx + 4.0f,
+                        by + 4.0f,
+                        buttonSize - 8.0f,
+                        buttonSize - 8.0f,
+                        1.5f);
+
+                    // Highlight
+
+                    g.setColour(
+                        juce::Colour(
+                            130,
+                            195,
+                            255)
+                        .withAlpha(0.65f));
+
+                    g.drawLine(
+                        bx + 5.0f,
+                        by + 5.0f,
+                        bx + buttonSize - 5.0f,
+                        by + 5.0f,
+                        1.0f);
+                }
+                else
+                {
+                    // CLEAN / RELEASED
+
+                    g.setColour(
+                        juce::Colour(
+                            42,
+                            42,
+                            42));
+
+                    g.fillRoundedRectangle(
+                        bx,
+                        by,
+                        buttonSize,
+                        buttonSize,
+                        2.5f);
+
+                    g.setColour(
+                        juce::Colour(
+                            125,
+                            125,
+                            125));
+
+                    g.drawRoundedRectangle(
+                        bx,
+                        by,
+                        buttonSize,
+                        buttonSize,
+                        2.5f,
+                        1.0f);
+
+                    // Top highlight
+
+                    g.setColour(
+                        juce::Colour(
+                            180,
+                            180,
+                            180)
+                        .withAlpha(0.45f));
+
+                    g.drawLine(
+                        bx + 4.0f,
+                        by + 3.0f,
+                        bx + buttonSize - 4.0f,
+                        by + 3.0f,
+                        1.0f);
+                }
+
+                //==================================================
+                // CENTER INDICATOR
+                //==================================================
+
+                const float ledRadius =
+                    3.0f;
+
+                const float ledX =
+                    w * 0.5f;
+
+                const float ledY =
+                    by + buttonSize * 0.5f;
 
                 g.setColour(
-                    juce::Colour(
-                        75,
-                        75,
-                        75));
-
-                g.drawLine(
-                    leftPosition,
-                    centerY - 0.5f,
-                    rightPosition,
-                    centerY - 0.5f,
-                    1.0f);
-
-                //==================================================
-                // METAL WASHER
-                //==================================================
-
-                g.setColour(
-                    juce::Colour(
-                        55,
-                        55,
-                        55));
+                    on
+                        ? juce::Colour(
+                            105,
+                            190,
+                            255)
+                        : juce::Colour(
+                            25,
+                            25,
+                            25));
 
                 g.fillEllipse(
-                    switchX - 7.0f,
-                    centerY - 7.0f,
-                    14.0f,
-                    14.0f);
+                    ledX - ledRadius,
+                    ledY - ledRadius,
+                    ledRadius * 2.0f,
+                    ledRadius * 2.0f);
 
-                g.setColour(
-                    juce::Colour(
-                        175,
-                        175,
-                        175));
-
-                g.drawEllipse(
-                    switchX - 7.0f,
-                    centerY - 7.0f,
-                    14.0f,
-                    14.0f,
-                    1.0f);
-
-                //==================================================
-                // LEVER ANGLE
-                //==================================================
-
-                const float leverAngle =
-                    on
-                        ? -0.62f
-                        : 0.62f;
-
-                const float leverLength =
-                    12.0f;
-
-                const float endX =
-                    switchX
-                    + std::sin(leverAngle)
-                      * leverLength;
-
-                const float endY =
-                    centerY
-                    - std::cos(leverAngle)
-                      * leverLength;
-
-                //==================================================
-                // LEVER SHADOW
-                //==================================================
-
-                g.setColour(
-                    juce::Colour(
-                        0,
-                        0,
-                        0)
+                if (on)
+                {
+                    g.setColour(
+                        juce::Colour(
+                            170,
+                            225,
+                            255)
                         .withAlpha(0.8f));
 
-                g.drawLine(
-                    switchX + 1.2f,
-                    centerY + 1.4f,
-                    endX + 1.2f,
-                    endY + 1.4f,
-                    4.0f);
+                    g.fillEllipse(
+                        ledX - 1.3f,
+                        ledY - 1.3f,
+                        2.6f,
+                        2.6f);
+                }
 
                 //==================================================
-                // METAL LEVER
-                //==================================================
-
-                g.setColour(
-                    juce::Colour(
-                        205,
-                        205,
-                        205));
-
-                g.drawLine(
-                    switchX,
-                    centerY,
-                    endX,
-                    endY,
-                    3.6f);
-
-                //==================================================
-                // LEVER HIGHLIGHT
-                //==================================================
-
-                g.setColour(
-                    juce::Colour(
-                        250,
-                        250,
-                        250));
-
-                g.drawLine(
-                    switchX - 0.5f,
-                    centerY - 0.5f,
-                    endX - 0.5f,
-                    endY - 0.5f,
-                    0.9f);
-
-                //==================================================
-                // LEVER TIP
-                //==================================================
-
-                g.setColour(
-                    juce::Colour(
-                        150,
-                        150,
-                        150));
-
-                g.fillEllipse(
-                    endX - 4.0f,
-                    endY - 4.0f,
-                    8.0f,
-                    8.0f);
-
-                g.setColour(
-                    juce::Colour(
-                        230,
-                        230,
-                        230));
-
-                g.fillEllipse(
-                    endX - 2.4f,
-                    endY - 2.4f,
-                    4.8f,
-                    4.8f);
-
-                //==================================================
-                // CLEAN / DRIVE
+                // CLEAN / DRIVE TEXT
                 //==================================================
 
                 g.setFont(
@@ -324,16 +313,16 @@ namespace
                 g.setColour(
                     on
                         ? juce::Colour(
-                            105,
-                            105,
-                            105)
+                            100,
+                            100,
+                            100)
                         : juce::Colours::white);
 
                 g.drawText(
                     "CLEAN",
-                    5,
-                    static_cast<int>(h - 9.0f),
-                    28,
+                    2,
+                    static_cast<int>(h - 8.0f),
+                    static_cast<int>(w * 0.5f - 2.0f),
                     7,
                     juce::Justification::centred);
 
@@ -341,15 +330,15 @@ namespace
                     on
                         ? juce::Colours::white
                         : juce::Colour(
-                            105,
-                            105,
-                            105));
+                            100,
+                            100,
+                            100));
 
                 g.drawText(
                     "DRIVE",
-                    static_cast<int>(w - 33.0f),
-                    static_cast<int>(h - 9.0f),
-                    28,
+                    static_cast<int>(w * 0.5f + 2.0f),
+                    static_cast<int>(h - 8.0f),
+                    static_cast<int>(w * 0.5f - 4.0f),
                     7,
                     juce::Justification::centred);
 
@@ -603,11 +592,13 @@ AmpSimAudioProcessorEditor(
     setupLabel(ampLabel, "AMP");
 
     //==============================================================
-    // MODE SWITCH
+    // MODE PUSH BUTTON
     //==============================================================
 
     modeSwitch.setButtonText("CLEAN");
+
     modeSwitch.setClickingTogglesState(true);
+
     modeSwitch.setToggleState(
         false,
         juce::dontSendNotification);
@@ -635,7 +626,7 @@ AmpSimAudioProcessorEditor(
                     ? "DRIVE"
                     : "CLEAN");
 
-            repaint();
+            modeSwitch.repaint();
         };
 
     //==============================================================
@@ -643,7 +634,9 @@ AmpSimAudioProcessorEditor(
     //==============================================================
 
     ampSwitch.setButtonText("ON");
+
     ampSwitch.setClickingTogglesState(true);
+
     ampSwitch.setToggleState(
         true,
         juce::dontSendNotification);
@@ -671,6 +664,7 @@ AmpSimAudioProcessorEditor(
                     ? "ON"
                     : "OFF");
 
+            ampSwitch.repaint();
             repaint();
         };
 
@@ -759,12 +753,6 @@ void AmpSimAudioProcessorEditor::setupKnob(
 {
     slider.setSliderStyle(
         juce::Slider::RotaryHorizontalVerticalDrag);
-
-    //==============================================================
-    // IMPORTANT:
-    // JUCE mouse movement now uses the exact same rotation
-    // range as the drawn pointer.
-    //==============================================================
 
     slider.setRotaryParameters(
         knobStartAngle,
@@ -1183,7 +1171,7 @@ void AmpSimAudioProcessorEditor::resized()
         labelHeight);
 
     //==============================================================
-    // MODE TOGGLE
+    // MODE SQUARE PUSH BUTTON
     //==============================================================
 
     modeSwitch.setBounds(
