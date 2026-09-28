@@ -46,8 +46,8 @@ AmpSimAudioProcessor::AmpSimAudioProcessor()
     ampParameter =
         parameters.getRawParameterValue("AMP");
 
-    namLoader =
-        std::make_unique<NeuralAudio::NeuralModelLoader>();
+    // NeuralModelLoader is a direct member object.
+    // Do NOT create it with make_unique().
 }
 
 //==============================================================
@@ -126,7 +126,7 @@ AmpSimAudioProcessor::createParameterLayout()
             false));
 
     // false = OFF
-    // true  = ON
+    // true = ON
     params.push_back(
         std::make_unique<juce::AudioParameterBool>(
             "AMP",
@@ -292,33 +292,34 @@ void AmpSimAudioProcessor::loadNAM()
             .getChildFile(
                 "RG_MBDR_precision.nam");
 
+    const auto namData =
+        BinaryData::RG_MBDRprecision_nam;
+
+    const int namSize =
+        BinaryData::RG_MBDRprecision_namSize;
+
+    if (!namFile.replaceWithData(
+            namData,
+            static_cast<size_t>(namSize)))
     {
-        const auto namData =
-            BinaryData::RG_MBDRprecision_nam;
-
-        const int namSize =
-            BinaryData::RG_MBDRprecision_namSize;
-
-        if (!namFile.replaceWithData(
-                namData,
-                static_cast<size_t>(namSize)))
-        {
-            return;
-        }
+        return;
     }
 
     try
     {
-        if (namLoader)
-        {
-            namModel.reset(
-                namLoader->CreateFromFile(
-                    namFile.getFullPathName().toStdString()));
-        }
+        namModel.reset(
+            namLoader.CreateFromFile(
+                namFile.getFullPathName().toStdString()));
 
         if (namModel != nullptr)
         {
             namLoaded = true;
+
+            if (maximumBlockSize > 0)
+            {
+                namModel->SetMaxAudioBufferSize(
+                    maximumBlockSize);
+            }
         }
     }
     catch (...)
@@ -340,19 +341,17 @@ void AmpSimAudioProcessor::loadIR()
             .getChildFile(
                 "RG_412_MB_mic_1.wav");
 
+    const auto irData =
+        BinaryData::RG_412_MB_mic_1_wav;
+
+    const int irSize =
+        BinaryData::RG_412_MB_mic_1_wavSize;
+
+    if (!irFile.replaceWithData(
+            irData,
+            static_cast<size_t>(irSize)))
     {
-        const auto irData =
-            BinaryData::RG_412_MB_mic_1_wav;
-
-        const int irSize =
-            BinaryData::RG_412_MB_mic_1_wavSize;
-
-        if (!irFile.replaceWithData(
-                irData,
-                static_cast<size_t>(irSize)))
-        {
-            return;
-        }
+        return;
     }
 
     irConvolution.reset();
