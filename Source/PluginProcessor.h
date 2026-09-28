@@ -6,6 +6,7 @@
 
 //==============================================================
 // NeuralAudio
+//
 // NeuralModel.h contains:
 //   NeuralAudio::NeuralModel
 //   NeuralAudio::NeuralModelLoader
@@ -75,7 +76,8 @@ public:
 
     int getCurrentProgram() override;
 
-    void setCurrentProgram(int index) override;
+    void setCurrentProgram(
+        int index) override;
 
     const juce::String getProgramName(
         int index) override;
@@ -140,9 +142,15 @@ private:
     // NEURAL AMP MODEL
     //==============================================================
 
-    std::unique_ptr<NeuralAudio::NeuralModelLoader>
-        namLoader;
+    // Direct object.
+    // NeuralAudio's API is used as:
+    //
+    // NeuralModelLoader loader;
+    // loader.CreateFromFile(...);
 
+    NeuralAudio::NeuralModelLoader namLoader;
+
+    // Actual loaded NAM model.
     std::unique_ptr<NeuralAudio::NeuralModel>
         namModel;
 
@@ -165,9 +173,9 @@ private:
     //==============================================================
     // EQ FILTERS
     //
-    // 1 = BASS
-    // 2 = MID
-    // 3 = HIGH
+    // 0 = BASS
+    // 1 = MID
+    // 2 = HIGH
     //==============================================================
 
     using Filter =
@@ -221,15 +229,3 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AmpSimAudioProcessor)
 };
-
-Bakit ito ang tama
-
-Sa official NeuralAudio source, ang "NeuralModel.h" mismo ang naglalaman ng:
-
-namespace NeuralAudio
-{
-    class NeuralModel
-    ...
-    class NeuralModelLoader
-    ...
-}
