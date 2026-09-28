@@ -17,7 +17,6 @@ namespace
     // CONTROL POSITIONS
     //
     // 50 px center-to-center spacing
-    // Entire control group centered in 800 px panel.
     //
     // INPUT  205
     // GAIN   255
@@ -262,17 +261,50 @@ namespace
 
             //======================================================
             // AMP SWITCH
+            //
+            // Outer housing/ring is FIXED.
+            // Only the lever moves ON/OFF.
             //======================================================
 
             const float centerX =
                 w * 0.5f;
 
-            const float switchY =
-                on
-                    ? 11.0f
-                    : h - 11.0f;
+            //======================================================
+            // FIXED OUTER HOUSING
+            //======================================================
 
-            // Slot
+            g.setColour(
+                juce::Colour(
+                    8,
+                    8,
+                    8));
+
+            g.fillRoundedRectangle(
+                centerX - 10.0f,
+                2.0f,
+                20.0f,
+                h - 4.0f,
+                6.0f);
+
+            // Fixed outer ring
+            g.setColour(
+                juce::Colour(
+                    95,
+                    95,
+                    95));
+
+            g.drawRoundedRectangle(
+                centerX - 10.0f,
+                2.0f,
+                20.0f,
+                h - 4.0f,
+                6.0f,
+                1.2f);
+
+            //======================================================
+            // FIXED INNER SLOT
+            //======================================================
+
             g.setColour(
                 juce::Colour(
                     2,
@@ -289,9 +321,9 @@ namespace
             // Slot highlight
             g.setColour(
                 juce::Colour(
-                    75,
-                    75,
-                    75));
+                    70,
+                    70,
+                    70));
 
             g.drawLine(
                 centerX - 0.5f,
@@ -300,40 +332,22 @@ namespace
                 h - 6.0f,
                 1.0f);
 
-            // Switch knob
-            g.setColour(
-                juce::Colour(
-                    55,
-                    55,
-                    55));
+            //======================================================
+            // MOVING LEVER
+            //======================================================
 
-            g.fillEllipse(
-                centerX - 8.0f,
-                switchY - 8.0f,
-                16.0f,
-                16.0f);
+            const float leverCenterY =
+                on
+                    ? 10.0f
+                    : h - 10.0f;
 
-            g.setColour(
-                juce::Colour(
-                    180,
-                    180,
-                    180));
-
-            g.drawEllipse(
-                centerX - 8.0f,
-                switchY - 8.0f,
-                16.0f,
-                16.0f,
-                1.0f);
-
-            // Lever
             const float leverLength =
                 12.0f;
 
             const float endY =
                 on
-                    ? switchY - leverLength
-                    : switchY + leverLength;
+                    ? leverCenterY - leverLength
+                    : leverCenterY + leverLength;
 
             // Lever shadow
             g.setColour(
@@ -344,27 +358,27 @@ namespace
                     .withAlpha(0.85f));
 
             g.drawLine(
-                centerX + 1.3f,
-                switchY + 1.3f,
-                centerX + 1.3f,
-                endY + 1.3f,
-                4.4f);
+                centerX + 1.5f,
+                leverCenterY + 1.5f,
+                centerX + 1.5f,
+                endY + 1.5f,
+                4.5f);
 
             // Main lever
             g.setColour(
                 juce::Colour(
-                    210,
-                    210,
-                    210));
+                    215,
+                    215,
+                    215));
 
             g.drawLine(
                 centerX,
-                switchY,
+                leverCenterY,
                 centerX,
                 endY,
                 4.0f);
 
-            // Highlight
+            // Lever highlight
             g.setColour(
                 juce::Colour(
                     250,
@@ -373,17 +387,20 @@ namespace
 
             g.drawLine(
                 centerX - 0.6f,
-                switchY - 0.6f,
+                leverCenterY - 0.6f,
                 centerX - 0.6f,
                 endY - 0.6f,
                 1.0f);
 
-            // Tip
+            //======================================================
+            // LEVER TIP
+            //======================================================
+
             g.setColour(
                 juce::Colour(
-                    150,
-                    150,
-                    150));
+                    145,
+                    145,
+                    145));
 
             g.fillEllipse(
                 centerX - 4.5f,
@@ -868,16 +885,20 @@ void AmpSimAudioProcessorEditor::paint(
 
     //============================================================
     // INPUT JACK
+    //
+    // 11 x 11 px
+    // Socket only - NOT a switch.
     //============================================================
 
     constexpr float jackRadius =
-        11.0f;
+        5.5f;
 
+    // Dark recessed center
     g.setColour(
         juce::Colour(
-            25,
-            25,
-            25));
+            8,
+            8,
+            8));
 
     g.fillEllipse(
         inputX - jackRadius,
@@ -885,18 +906,50 @@ void AmpSimAudioProcessorEditor::paint(
         jackRadius * 2.0f,
         jackRadius * 2.0f);
 
+    // Metallic outer ring
     g.setColour(
         juce::Colour(
-            5,
-            5,
-            5));
+            135,
+            135,
+            135));
 
     g.drawEllipse(
         inputX - jackRadius,
         controlY - jackRadius,
         jackRadius * 2.0f,
         jackRadius * 2.0f,
-        2.0f);
+        1.2f);
+
+    // Small metallic highlight
+    g.setColour(
+        juce::Colour(
+            220,
+            220,
+            220)
+        .withAlpha(0.65f));
+
+    g.drawArc(
+        inputX - 4.0f,
+        controlY - 4.0f,
+        8.0f,
+        8.0f,
+        juce::MathConstants<float>::pi * 1.15f,
+        juce::MathConstants<float>::pi * 1.85f,
+        true,
+        0.8f);
+
+    // Dark center
+    g.setColour(
+        juce::Colour(
+            2,
+            2,
+            2));
+
+    g.fillEllipse(
+        inputX - 2.2f,
+        controlY - 2.2f,
+        4.4f,
+        4.4f);
 
     //============================================================
     // AMP RED LED
