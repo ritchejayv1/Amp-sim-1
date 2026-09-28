@@ -187,8 +187,8 @@ void AmpSimAudioProcessor::prepareToPlay(
                 0.707f,
                 1.0f);
 
-        *eqChain.get<0>().state =
-            *bassCoefficients;
+        eqChain.get<0>().coefficients =
+            bassCoefficients;
     }
 
     {
@@ -199,8 +199,8 @@ void AmpSimAudioProcessor::prepareToPlay(
                 0.707f,
                 1.0f);
 
-        *eqChain.get<1>().state =
-            *midCoefficients;
+        eqChain.get<1>().coefficients =
+            midCoefficients;
     }
 
     {
@@ -211,8 +211,8 @@ void AmpSimAudioProcessor::prepareToPlay(
                 0.707f,
                 1.0f);
 
-        *eqChain.get<2>().state =
-            *highCoefficients;
+        eqChain.get<2>().coefficients =
+            highCoefficients;
     }
 
     loadNAM();
@@ -355,6 +355,7 @@ void AmpSimAudioProcessor::loadIR()
             irFile,
             juce::dsp::Convolution::Stereo::no,
             juce::dsp::Convolution::Trim::yes,
+            0,
             juce::dsp::Convolution::Normalise::yes);
     }
     catch (...)
@@ -567,11 +568,8 @@ void AmpSimAudioProcessor::processBlock(
     //==========================================================
 
     {
-        auto* coefficients =
-            eqChain.get<0>().state;
-
-        *coefficients =
-            *juce::dsp::IIR::Coefficients<float>::makeLowShelf(
+        eqChain.get<0>().coefficients =
+            juce::dsp::IIR::Coefficients<float>::makeLowShelf(
                 currentSampleRate,
                 120.0,
                 0.707f,
@@ -584,11 +582,8 @@ void AmpSimAudioProcessor::processBlock(
     //==========================================================
 
     {
-        auto* coefficients =
-            eqChain.get<1>().state;
-
-        *coefficients =
-            *juce::dsp::IIR::Coefficients<float>::makePeakFilter(
+        eqChain.get<1>().coefficients =
+            juce::dsp::IIR::Coefficients<float>::makePeakFilter(
                 currentSampleRate,
                 750.0,
                 0.707f,
@@ -601,11 +596,8 @@ void AmpSimAudioProcessor::processBlock(
     //==========================================================
 
     {
-        auto* coefficients =
-            eqChain.get<2>().state;
-
-        *coefficients =
-            *juce::dsp::IIR::Coefficients<float>::makeHighShelf(
+        eqChain.get<2>().coefficients =
+            juce::dsp::IIR::Coefficients<float>::makeHighShelf(
                 currentSampleRate,
                 4500.0,
                 0.707f,
