@@ -868,3 +868,11 @@ void AmpSimAudioProcessor::setStateInformation(
         }
     }
 }
+//==============================================================
+// JUCE PLUGIN FACTORY
+//==============================================================
+
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new AmpSimAudioProcessor();
+}
