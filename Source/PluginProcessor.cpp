@@ -592,7 +592,7 @@ void AmpSimAudioProcessor::processBlock(
     //==========================================================================
 
     constexpr float fixedOutputBoostDb =
-        12.0f;
+        18.0f;
 
     outputGain.setGainDecibels(
         fixedOutputBoostDb);
