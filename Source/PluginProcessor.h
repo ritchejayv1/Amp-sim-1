@@ -1,6 +1,8 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_dsp/juce_dsp.h>
 
 // NeuralAudio
 #include <NeuralAudio/NeuralAudio.h>
@@ -46,6 +48,7 @@ public:
     void setCurrentProgram(int index) override;
 
     const juce::String getProgramName(int index) override;
+
     void changeProgramName(
         int index,
         const juce::String& newName) override;
@@ -77,14 +80,20 @@ private:
     std::atomic<float>* highParameter   = nullptr;
     std::atomic<float>* volumeParameter = nullptr;
 
+    //==============================================================
     // MODE
     // 0 = CLEAN
     // 1 = DRIVE
+    //==============================================================
+
     std::atomic<float>* modeParameter = nullptr;
 
+    //==============================================================
     // AMP
     // 0 = OFF
     // 1 = ON
+    //==============================================================
+
     std::atomic<float>* ampParameter = nullptr;
 
     //==============================================================
@@ -129,6 +138,7 @@ private:
     //==============================================================
 
     juce::dsp::Gain<float> inputGain;
+
     juce::dsp::Gain<float> outputGain;
 
     juce::dsp::ProcessSpec monoSpec;
