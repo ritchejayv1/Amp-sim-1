@@ -5,7 +5,7 @@
 #include <juce_dsp/juce_dsp.h>
 
 // NeuralAudio
-#include <NeuralAudio/NeuralAudio.h>
+#include <NeuralAudio.h>
 
 class AmpSimAudioProcessor : public juce::AudioProcessor
 {
@@ -138,7 +138,6 @@ private:
     //==============================================================
 
     juce::dsp::Gain<float> inputGain;
-
     juce::dsp::Gain<float> outputGain;
 
     juce::dsp::ProcessSpec monoSpec;
