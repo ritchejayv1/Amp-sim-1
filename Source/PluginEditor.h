@@ -48,7 +48,17 @@ private:
     juce::Slider volumeKnob;
 
     //==============================================================
+    // MODE SWITCH
+    // CLEAN / DRIVE
+    //==============================================================
+
+    juce::ToggleButton modeSwitch;
+
+    bool isDriveMode = false;
+
+    //==============================================================
     // AMP SWITCH
+    // ON / OFF
     //==============================================================
 
     juce::ToggleButton ampSwitch;
@@ -69,6 +79,7 @@ private:
     juce::Label midLabel;
     juce::Label hiLabel;
     juce::Label volumeLabel;
+    juce::Label modeLabel;
     juce::Label ampLabel;
 
     //==============================================================
