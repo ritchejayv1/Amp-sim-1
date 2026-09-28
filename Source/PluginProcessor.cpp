@@ -179,6 +179,10 @@ void AmpSimAudioProcessor::prepareToPlay(
 
     eqChain.prepare(monoSpec);
 
+    //==========================================================
+    // INITIAL BASS
+    //==========================================================
+
     {
         auto bassCoefficients =
             juce::dsp::IIR::Coefficients<float>::makeLowShelf(
@@ -191,6 +195,10 @@ void AmpSimAudioProcessor::prepareToPlay(
             bassCoefficients;
     }
 
+    //==========================================================
+    // INITIAL MID
+    //==========================================================
+
     {
         auto midCoefficients =
             juce::dsp::IIR::Coefficients<float>::makePeakFilter(
@@ -202,6 +210,10 @@ void AmpSimAudioProcessor::prepareToPlay(
         eqChain.get<1>().coefficients =
             midCoefficients;
     }
+
+    //==========================================================
+    // INITIAL HIGH
+    //==========================================================
 
     {
         auto highCoefficients =
@@ -274,13 +286,6 @@ void AmpSimAudioProcessor::loadNAM()
     namLoaded = false;
     namModel.reset();
 
-    if (namLoader == nullptr)
-    {
-        namLoader =
-            std::make_unique<
-                NeuralAudio::NeuralModelLoader>();
-    }
-
     const auto namFile =
         juce::File::getSpecialLocation(
             juce::File::tempDirectory)
@@ -304,9 +309,12 @@ void AmpSimAudioProcessor::loadNAM()
 
     try
     {
-        namModel.reset(
-            namLoader->CreateFromFile(
-                namFile.getFullPathName().toStdString()));
+        if (namLoader)
+        {
+            namModel.reset(
+                namLoader->CreateFromFile(
+                    namFile.getFullPathName().toStdString()));
+        }
 
         if (namModel != nullptr)
         {
@@ -491,7 +499,8 @@ void AmpSimAudioProcessor::processBlock(
     {
         for (int i = 0; i < numSamples; ++i)
         {
-            monoData[i] = left[i];
+            monoData[i] =
+                left[i];
         }
     }
 
@@ -536,7 +545,9 @@ void AmpSimAudioProcessor::processBlock(
 
     if (shouldProcessNAM)
     {
-        for (int i = 0; i < numSamples; ++i)
+        for (int i = 0;
+             i < numSamples;
+             ++i)
         {
             namInputData[
                 static_cast<size_t>(i)] =
@@ -550,7 +561,9 @@ void AmpSimAudioProcessor::processBlock(
                 namOutputData.data(),
                 static_cast<size_t>(numSamples));
 
-            for (int i = 0; i < numSamples; ++i)
+            for (int i = 0;
+                 i < numSamples;
+                 ++i)
             {
                 monoData[i] =
                     namOutputData[
@@ -680,7 +693,9 @@ void AmpSimAudioProcessor::processBlock(
             0.0f,
             1.0f);
 
-    for (int i = 0; i < numSamples; ++i)
+    for (int i = 0;
+         i < numSamples;
+         ++i)
     {
         monoData[i] *= masterGain;
     }
