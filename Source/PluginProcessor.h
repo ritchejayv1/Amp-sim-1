@@ -4,18 +4,31 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_dsp/juce_dsp.h>
 
+//==============================================================
 // NeuralAudio
-#include <NeuralAudio.h>
+//==============================================================
+
+#include <NeuralAudio/NeuralAudio.h>
+
+//==============================================================
+// RG AMP SIM AUDIO PROCESSOR
+//==============================================================
 
 class AmpSimAudioProcessor : public juce::AudioProcessor
 {
 public:
 
     //==============================================================
+    // CONSTRUCTOR / DESTRUCTOR
+    //==============================================================
+
     AmpSimAudioProcessor();
     ~AmpSimAudioProcessor() override;
 
     //==============================================================
+    // AUDIO
+    //==============================================================
+
     void prepareToPlay(
         double sampleRate,
         int samplesPerBlock) override;
@@ -26,34 +39,52 @@ public:
         const BusesLayout& layouts) const override;
 
     void processBlock(
-        juce::AudioBuffer<float>&,
-        juce::MidiBuffer&) override;
+        juce::AudioBuffer<float>& buffer,
+        juce::MidiBuffer& midiMessages) override;
 
     //==============================================================
+    // EDITOR
+    //==============================================================
+
     juce::AudioProcessorEditor* createEditor() override;
+
     bool hasEditor() const override;
 
     //==============================================================
+    // PLUGIN INFORMATION
+    //==============================================================
+
     const juce::String getName() const override;
 
     bool acceptsMidi() const override;
+
     bool producesMidi() const override;
+
     bool isMidiEffect() const override;
 
     double getTailLengthSeconds() const override;
 
     //==============================================================
+    // PROGRAMS
+    //==============================================================
+
     int getNumPrograms() override;
+
     int getCurrentProgram() override;
+
     void setCurrentProgram(int index) override;
 
-    const juce::String getProgramName(int index) override;
+    const juce::String getProgramName(
+        int index) override;
 
     void changeProgramName(
         int index,
         const juce::String& newName) override;
 
     //==============================================================
+    // STATE
+    //==============================================================
+
     void getStateInformation(
         juce::MemoryBlock& destData) override;
 
@@ -62,16 +93,18 @@ public:
         int sizeInBytes) override;
 
     //==============================================================
+    // PARAMETERS
+    //==============================================================
+
     juce::AudioProcessorValueTreeState parameters;
 
-    //==============================================================
     static juce::AudioProcessorValueTreeState::ParameterLayout
     createParameterLayout();
 
 private:
 
     //==============================================================
-    // PARAMETERS
+    // PARAMETER POINTERS
     //==============================================================
 
     std::atomic<float>* gainParameter   = nullptr;
@@ -82,6 +115,7 @@ private:
 
     //==============================================================
     // MODE
+    //
     // 0 = CLEAN
     // 1 = DRIVE
     //==============================================================
@@ -90,33 +124,43 @@ private:
 
     //==============================================================
     // AMP
+    //
     // 0 = OFF
     // 1 = ON
+    //
+    // AMP OFF = TRUE DRY BYPASS
     //==============================================================
 
     std::atomic<float>* ampParameter = nullptr;
 
     //==============================================================
-    // NAM
+    // NEURAL AMP MODEL
     //==============================================================
 
-    std::unique_ptr<NeuralAudio::NeuralModelLoader> namLoader;
+    std::unique_ptr<NeuralAudio::NeuralModelLoader>
+        namLoader;
 
-    std::unique_ptr<NeuralAudio::NeuralModel> namModel;
+    std::unique_ptr<NeuralAudio::NeuralModel>
+        namModel;
 
     bool namLoaded = false;
 
+    // NAM processing buffers
     std::vector<float> namInputData;
     std::vector<float> namOutputData;
 
     //==============================================================
-    // AUDIO
+    // MONO AUDIO BUFFER
     //==============================================================
 
     juce::AudioBuffer<float> monoBuffer;
 
     //==============================================================
-    // FILTERS
+    // EQ FILTERS
+    //
+    // BASS
+    // MID
+    // HIGH
     //==============================================================
 
     using Filter =
@@ -128,19 +172,28 @@ private:
         Filter> eqChain;
 
     //==============================================================
-    // IR
+    // 4x12 CABINET IR
     //==============================================================
 
     juce::dsp::Convolution irConvolution;
 
     //==============================================================
-    // DSP
+    // INPUT / OUTPUT GAIN
     //==============================================================
 
     juce::dsp::Gain<float> inputGain;
+
     juce::dsp::Gain<float> outputGain;
 
+    //==============================================================
+    // DSP PROCESS SPEC
+    //==============================================================
+
     juce::dsp::ProcessSpec monoSpec;
+
+    //==============================================================
+    // AUDIO SETTINGS
+    //==============================================================
 
     double currentSampleRate = 44100.0;
 
@@ -155,6 +208,9 @@ private:
     void loadIR();
 
     //==============================================================
+    // JUCE
+    //==============================================================
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AmpSimAudioProcessor)
 };
