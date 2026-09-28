@@ -920,7 +920,23 @@ void AmpSimAudioProcessorEditor::paint(
         jackRadius * 2.0f,
         1.2f);
 
-    // Small metallic highlight
+    //============================================================
+    // SMALL METALLIC HIGHLIGHT
+    //
+    // JUCE-compatible Path::addArc()
+    //============================================================
+
+    juce::Path highlightArc;
+
+    highlightArc.addArc(
+        inputX - 4.0f,
+        controlY - 4.0f,
+        8.0f,
+        8.0f,
+        juce::MathConstants<float>::pi * 1.15f,
+        juce::MathConstants<float>::pi * 1.85f,
+        true);
+
     g.setColour(
         juce::Colour(
             220,
@@ -928,15 +944,10 @@ void AmpSimAudioProcessorEditor::paint(
             220)
         .withAlpha(0.65f));
 
-    g.drawArc(
-        inputX - 4.0f,
-        controlY - 4.0f,
-        8.0f,
-        8.0f,
-        juce::MathConstants<float>::pi * 1.15f,
-        juce::MathConstants<float>::pi * 1.85f,
-        true,
-        0.8f);
+    g.strokePath(
+        highlightArc,
+        juce::PathStrokeType(
+            0.8f));
 
     // Dark center
     g.setColour(
