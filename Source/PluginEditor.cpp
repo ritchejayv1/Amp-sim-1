@@ -1,38 +1,69 @@
 #include "PluginEditor.h"
 
+#include <cmath>
+
 #include "BinaryData.h"
 
-//==============================================================================
-// Constructor
-//==============================================================================
+namespace
+{
+    //==============================================================
+    // WINDOW / PEDAL SIZE
+    //==============================================================
 
-AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
+    constexpr int editorWidth  = 800;
+    constexpr int editorHeight = 500;
+
+    //==============================================================
+    // MAIN CONTROL POSITIONS
+    //==============================================================
+
+    constexpr float inputX  = 130.0f;
+    constexpr float gainX   = 200.0f;
+    constexpr float bassX   = 270.0f;
+    constexpr float midX    = 340.0f;
+    constexpr float hiX     = 410.0f;
+    constexpr float volumeX = 480.0f;
+    constexpr float modeX   = 550.0f;
+    constexpr float ampX    = 620.0f;
+
+    constexpr float controlY = 330.0f;
+
+    //==============================================================
+    // SMALL KNOB
+    //==============================================================
+
+    constexpr float knobSize = 36.0f;
+}
+
+//==================================================================
+// CONSTRUCTOR
+//==================================================================
+
+AmpSimAudioProcessorEditor::
+AmpSimAudioProcessorEditor(
     AmpSimAudioProcessor& p)
     : AudioProcessorEditor(&p),
       audioProcessor(p)
 {
     //==============================================================
-    // RG100 BACKGROUND IMAGE
+    // WINDOW
     //==============================================================
 
-    int imageSize = 0;
-
-    const void* imageData =
-        BinaryData::getNamedResource(
-            "rg100_jpg",
-            imageSize);
-
-    if (imageData != nullptr &&
-        imageSize > 0)
-    {
-        backgroundImage =
-            juce::ImageCache::getFromMemory(
-                imageData,
-                imageSize);
-    }
+    setSize(
+        editorWidth,
+        editorHeight);
 
     //==============================================================
-    // GAIN
+    // BACKGROUND IMAGE
+    //==============================================================
+
+    backgroundImage =
+        juce::ImageCache::getFromMemory(
+            BinaryData::rg100_jpg,
+            BinaryData::rg100_jpgSize);
+
+    //==============================================================
+    // KNOBS
     //==============================================================
 
     setupKnob(
@@ -41,19 +72,11 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
         10.0,
         0.01);
 
-    //==============================================================
-    // BASS
-    //==============================================================
-
     setupKnob(
         bassKnob,
         -12.0,
         12.0,
         0.01);
-
-    //==============================================================
-    // MID
-    //==============================================================
 
     setupKnob(
         midKnob,
@@ -61,37 +84,17 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
         12.0,
         0.01);
 
-    //==============================================================
-    // HI
-    //==============================================================
-
     setupKnob(
         hiKnob,
         -12.0,
         12.0,
         0.01);
 
-    //==============================================================
-    // VOLUME
-    //==============================================================
-
     setupKnob(
         volumeKnob,
         0.0,
         10.0,
         0.01);
-
-    //==============================================================
-    // VOLUME POPUP DISPLAY
-    //==============================================================
-
-    volumeKnob.textFromValueFunction =
-        [](double value)
-        {
-            return juce::String(
-                value / 10.0,
-                1);
-        };
 
     //==============================================================
     // LABELS
@@ -131,18 +134,17 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
 
     //==============================================================
     // MODE SWITCH
-    // CLEAN / DRIVE
     //==============================================================
 
     modeSwitch.setButtonText(
         "CLEAN");
 
+    modeSwitch.setClickingTogglesState(
+        true);
+
     modeSwitch.setToggleState(
         false,
         juce::dontSendNotification);
-
-    modeSwitch.setClickingTogglesState(
-        true);
 
     modeSwitch.setColour(
         juce::ToggleButton::textColourId,
@@ -155,6 +157,24 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
     modeSwitch.setColour(
         juce::ToggleButton::tickDisabledColourId,
         juce::Colours::darkgrey);
+
+    addAndMakeVisible(
+        modeSwitch);
+
+    //==============================================================
+    // MODE PARAMETER ATTACHMENT
+    //==============================================================
+
+    modeAttachment =
+        std::make_unique<
+            juce::AudioProcessorValueTreeState::ButtonAttachment>(
+                audioProcessor.parameters,
+                "MODE",
+                modeSwitch);
+
+    //==============================================================
+    // MODE CLICK
+    //==============================================================
 
     modeSwitch.onClick =
         [this]()
@@ -170,23 +190,19 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
             repaint();
         };
 
-    addAndMakeVisible(
-        modeSwitch);
-
     //==============================================================
     // AMP SWITCH
-    // ON / OFF
     //==============================================================
 
     ampSwitch.setButtonText(
         "ON");
 
+    ampSwitch.setClickingTogglesState(
+        true);
+
     ampSwitch.setToggleState(
         true,
         juce::dontSendNotification);
-
-    ampSwitch.setClickingTogglesState(
-        true);
 
     ampSwitch.setColour(
         juce::ToggleButton::textColourId,
@@ -199,6 +215,24 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
     ampSwitch.setColour(
         juce::ToggleButton::tickDisabledColourId,
         juce::Colours::darkgrey);
+
+    addAndMakeVisible(
+        ampSwitch);
+
+    //==============================================================
+    // AMP PARAMETER ATTACHMENT
+    //==============================================================
+
+    ampAttachment =
+        std::make_unique<
+            juce::AudioProcessorValueTreeState::ButtonAttachment>(
+                audioProcessor.parameters,
+                "AMP",
+                ampSwitch);
+
+    //==============================================================
+    // AMP CLICK
+    //==============================================================
 
     ampSwitch.onClick =
         [this]()
@@ -214,97 +248,80 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
             repaint();
         };
 
-    addAndMakeVisible(
-        ampSwitch);
-
     //==============================================================
-    // PARAMETER ATTACHMENTS
+    // SLIDER ATTACHMENTS
     //==============================================================
 
     gainAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::
-                SliderAttachment>(
-                    audioProcessor.parameters,
-                    "GAIN",
-                    gainKnob);
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "GAIN",
+                gainKnob);
 
     bassAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::
-                SliderAttachment>(
-                    audioProcessor.parameters,
-                    "BASS",
-                    bassKnob);
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "BASS",
+                bassKnob);
 
     midAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::
-                SliderAttachment>(
-                    audioProcessor.parameters,
-                    "MID",
-                    midKnob);
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "MID",
+                midKnob);
 
     hiAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::
-                SliderAttachment>(
-                    audioProcessor.parameters,
-                    "HI",
-                    hiKnob);
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "HI",
+                hiKnob);
 
     volumeAttachment =
         std::make_unique<
-            juce::AudioProcessorValueTreeState::
-                SliderAttachment>(
-                    audioProcessor.parameters,
-                    "VOLUME",
-                    volumeKnob);
+            juce::AudioProcessorValueTreeState::SliderAttachment>(
+                audioProcessor.parameters,
+                "VOLUME",
+                volumeKnob);
 
     //==============================================================
-    // KNOB LOOK AND FEEL
+    // INITIAL UI STATE
     //==============================================================
 
-    gainKnob.setLookAndFeel(
-        &knobLookAndFeel);
+    isDriveMode =
+        modeSwitch.getToggleState();
 
-    bassKnob.setLookAndFeel(
-        &knobLookAndFeel);
+    ampIsOn =
+        ampSwitch.getToggleState();
 
-    midKnob.setLookAndFeel(
-        &knobLookAndFeel);
+    modeSwitch.setButtonText(
+        isDriveMode
+            ? "DRIVE"
+            : "CLEAN");
 
-    hiKnob.setLookAndFeel(
-        &knobLookAndFeel);
+    ampSwitch.setButtonText(
+        ampIsOn
+            ? "ON"
+            : "OFF");
 
-    volumeKnob.setLookAndFeel(
-        &knobLookAndFeel);
-
-    //==============================================================
-    // EDITOR SIZE
-    //==============================================================
-
-    setSize(
-        800,
-        500);
+    repaint();
 }
 
-//==============================================================================
-// Destructor
-//==============================================================================
+//==================================================================
+// DESTRUCTOR
+//==================================================================
 
-AmpSimAudioProcessorEditor::~AmpSimAudioProcessorEditor()
+AmpSimAudioProcessorEditor::
+~AmpSimAudioProcessorEditor()
 {
-    gainKnob.setLookAndFeel(nullptr);
-    bassKnob.setLookAndFeel(nullptr);
-    midKnob.setLookAndFeel(nullptr);
-    hiKnob.setLookAndFeel(nullptr);
-    volumeKnob.setLookAndFeel(nullptr);
 }
 
-//==============================================================================
-// Setup Knob
-//==============================================================================
+//==================================================================
+// KNOB SETUP
+//==================================================================
 
 void AmpSimAudioProcessorEditor::setupKnob(
     juce::Slider& slider,
@@ -326,13 +343,12 @@ void AmpSimAudioProcessorEditor::setupKnob(
         max,
         interval);
 
-    slider.setDoubleClickReturnValue(
-        true,
-        min);
+    slider.setValue(
+        (min + max) * 0.5,
+        juce::dontSendNotification);
 
-    //==============================================================
-    // POPUP VALUE DISPLAY
-    //==============================================================
+    slider.setLookAndFeel(
+        &knobLookAndFeel);
 
     slider.setPopupDisplayEnabled(
         true,
@@ -343,9 +359,9 @@ void AmpSimAudioProcessorEditor::setupKnob(
         slider);
 }
 
-//==============================================================================
-// Setup Label
-//==============================================================================
+//==================================================================
+// LABEL SETUP
+//==================================================================
 
 void AmpSimAudioProcessorEditor::setupLabel(
     juce::Label& label,
@@ -355,29 +371,128 @@ void AmpSimAudioProcessorEditor::setupLabel(
         text,
         juce::dontSendNotification);
 
-    label.setJustificationType(
-        juce::Justification::centred);
-
-    label.setColour(
-        juce::Label::textColourId,
-        juce::Colours::white);
-
-    //==============================================================
-    // SMALL LABEL FONT
-    //==============================================================
-
     label.setFont(
         juce::Font(
             8.0f,
             juce::Font::bold));
 
+    label.setColour(
+        juce::Label::textColourId,
+        juce::Colours::white);
+
+    label.setJustificationType(
+        juce::Justification::centred);
+
+    label.setInterceptsMouseClicks(
+        false,
+        false);
+
     addAndMakeVisible(
         label);
 }
 
-//==============================================================================
-// Paint
-//==============================================================================
+//==================================================================
+// KNOB LOOK AND FEEL
+//==================================================================
+
+void AmpSimAudioProcessorEditor::
+RGKnobLookAndFeel::drawRotarySlider(
+    juce::Graphics& g,
+    int x,
+    int y,
+    int width,
+    int height,
+    float sliderPosProportional,
+    float rotaryStartAngle,
+    float rotaryEndAngle,
+    juce::Slider& slider)
+{
+    juce::ignoreUnused(
+        slider);
+
+    const float size =
+        static_cast<float>(
+            juce::jmin(
+                width,
+                height));
+
+    const float cx =
+        static_cast<float>(x)
+        + static_cast<float>(width) * 0.5f;
+
+    const float cy =
+        static_cast<float>(y)
+        + static_cast<float>(height) * 0.5f;
+
+    const float radius =
+        size * 0.5f - 2.0f;
+
+    //==============================================================
+    // OUTER RING
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            20,
+            20,
+            20));
+
+    g.fillEllipse(
+        cx - radius,
+        cy - radius,
+        radius * 2.0f,
+        radius * 2.0f);
+
+    //==============================================================
+    // WHITE KNOB
+    //==============================================================
+
+    const float knobRadius =
+        radius - 3.0f;
+
+    g.setColour(
+        juce::Colours::white);
+
+    g.fillEllipse(
+        cx - knobRadius,
+        cy - knobRadius,
+        knobRadius * 2.0f,
+        knobRadius * 2.0f);
+
+    //==============================================================
+    // POINTER
+    //==============================================================
+
+    const float angle =
+        rotaryStartAngle
+        + sliderPosProportional
+          * (rotaryEndAngle - rotaryStartAngle);
+
+    const float pointerLength =
+        knobRadius * 0.65f;
+
+    const float pointerX =
+        cx + std::cos(angle)
+            * pointerLength;
+
+    const float pointerY =
+        cy + std::sin(angle)
+            * pointerLength;
+
+    g.setColour(
+        juce::Colours::black);
+
+    g.drawLine(
+        cx,
+        cy,
+        pointerX,
+        pointerY,
+        2.0f);
+}
+
+//==================================================================
+// PAINT
+//==================================================================
 
 void AmpSimAudioProcessorEditor::paint(
     juce::Graphics& g)
@@ -397,163 +512,63 @@ void AmpSimAudioProcessorEditor::paint(
     {
         g.fillAll(
             juce::Colour(
-                20,
-                20,
-                20));
+                18,
+                18,
+                18));
     }
 
     //==============================================================
-    // SCALE
+    // INPUT JACK
     //==============================================================
 
-    const float scaleX =
-        static_cast<float>(
-            getWidth())
-        / 800.0f;
-
-    const float scaleY =
-        static_cast<float>(
-            getHeight())
-        / 500.0f;
-
-    const float scale =
-        juce::jmin(
-            scaleX,
-            scaleY);
-
-    //==============================================================
-    // INPUT JACK SOCKET
-    // X = 130
-    // Y = 330
-    //==============================================================
-
-    const float jackCentreX =
-        130.0f * scale;
-
-    const float jackCentreY =
-        330.0f * scale;
-
-    const float jackRadius =
-        11.0f * scale;
-
-    //==============================================================
-    // OUTER METAL RING
-    //==============================================================
+    constexpr float jackRadius =
+        11.0f;
 
     g.setColour(
         juce::Colour(
-            125,
-            125,
-            125));
+            25,
+            25,
+            25));
 
     g.fillEllipse(
-        jackCentreX - jackRadius,
-        jackCentreY - jackRadius,
+        inputX - jackRadius,
+        controlY - jackRadius,
         jackRadius * 2.0f,
         jackRadius * 2.0f);
 
-    //==============================================================
-    // DARK INNER RING
-    //==============================================================
-
     g.setColour(
         juce::Colour(
-            45,
-            45,
-            45));
+            5,
+            5,
+            5));
 
-    g.fillEllipse(
-        jackCentreX - jackRadius
-            + 2.5f * scale,
-
-        jackCentreY - jackRadius
-            + 2.5f * scale,
-
-        jackRadius * 2.0f
-            - 5.0f * scale,
-
-        jackRadius * 2.0f
-            - 5.0f * scale);
+    g.drawEllipse(
+        inputX - jackRadius,
+        controlY - jackRadius,
+        jackRadius * 2.0f,
+        jackRadius * 2.0f,
+        2.0f);
 
     //==============================================================
-    // CENTER HOLE
+    // AMP LED
     //==============================================================
 
-    g.setColour(
-        juce::Colours::black);
+    constexpr float ledX =
+        ampX;
 
-    g.fillEllipse(
-        jackCentreX - 4.0f * scale,
-        jackCentreY - 4.0f * scale,
-        8.0f * scale,
-        8.0f * scale);
+    constexpr float ledY =
+        controlY - 17.0f;
 
-    //==============================================================
-    // METALLIC HIGHLIGHT
-    //==============================================================
-
-    g.setColour(
-        juce::Colour(
-            200,
-            200,
-            200));
-
-    g.fillEllipse(
-        jackCentreX - 5.5f * scale,
-        jackCentreY - 7.0f * scale,
-        3.0f * scale,
-        3.0f * scale);
-
-    //==============================================================
-    // AMP INDICATOR LED
-    //
-    // X = 620
-    // Y = 313
-    //==============================================================
-
-    const float ledX =
-        620.0f * scale;
-
-    const float ledY =
-        313.0f * scale;
-
-    const float ledRadius =
-        5.0f * scale;
-
-    //==============================================================
-    // LED OUTER RING
-    //==============================================================
-
-    g.setColour(
-        juce::Colour(
-            35,
-            35,
-            35));
-
-    g.fillEllipse(
-        ledX - ledRadius
-            - 2.0f * scale,
-
-        ledY - ledRadius
-            - 2.0f * scale,
-
-        (ledRadius
-            + 2.0f * scale) * 2.0f,
-
-        (ledRadius
-            + 2.0f * scale) * 2.0f);
-
-    //==============================================================
-    // LED
-    //==============================================================
+    constexpr float ledRadius =
+        5.0f;
 
     if (ampIsOn)
     {
         g.setColour(
             juce::Colour(
                 70,
-                255,
-                100));
+                220,
+                90));
     }
     else
     {
@@ -569,378 +584,171 @@ void AmpSimAudioProcessorEditor::paint(
         ledY - ledRadius,
         ledRadius * 2.0f,
         ledRadius * 2.0f);
-}
-
-//==============================================================================
-// Resized
-//==============================================================================
-
-void AmpSimAudioProcessorEditor::resized()
-{
-    //==============================================================
-    // 800 x 500 REFERENCE
-    //==============================================================
-
-    const float scaleX =
-        static_cast<float>(
-            getWidth())
-        / 800.0f;
-
-    const float scaleY =
-        static_cast<float>(
-            getHeight())
-        / 500.0f;
-
-    const float scale =
-        juce::jmin(
-            scaleX,
-            scaleY);
-
-    //==============================================================
-    // KNOB SIZE
-    //==============================================================
-
-    const int knobSize =
-        static_cast<int>(
-            36.0f * scale);
-
-    //==============================================================
-    // KNOB POSITION
-    //==============================================================
-
-    auto setKnobPosition =
-        [scale, knobSize](
-            juce::Slider& knob,
-            float centerX,
-            float centerY)
-        {
-            const int x =
-                static_cast<int>(
-                    centerX * scale
-                    - knobSize * 0.5f);
-
-            const int y =
-                static_cast<int>(
-                    centerY * scale
-                    - knobSize * 0.5f);
-
-            knob.setBounds(
-                x,
-                y,
-                knobSize,
-                knobSize);
-        };
-
-    //==============================================================
-    // KNOBS
-    //==============================================================
-
-    setKnobPosition(
-        gainKnob,
-        200.0f,
-        330.0f);
-
-    setKnobPosition(
-        bassKnob,
-        270.0f,
-        330.0f);
-
-    setKnobPosition(
-        midKnob,
-        340.0f,
-        330.0f);
-
-    setKnobPosition(
-        hiKnob,
-        410.0f,
-        330.0f);
-
-    setKnobPosition(
-        volumeKnob,
-        480.0f,
-        330.0f);
-
-    //==============================================================
-    // LABEL SIZE
-    //==============================================================
-
-    const int labelWidth =
-        static_cast<int>(
-            52.0f * scale);
-
-    const int labelHeight =
-        static_cast<int>(
-            13.0f * scale);
-
-    //==============================================================
-    // LABEL Y
-    //==============================================================
-
-    const int labelY =
-        static_cast<int>(
-            291.0f * scale);
-
-    auto setLabelPosition =
-        [scale,
-         labelWidth,
-         labelHeight,
-         labelY](
-            juce::Label& label,
-            float centerX)
-        {
-            const int x =
-                static_cast<int>(
-                    centerX * scale
-                    - labelWidth * 0.5f);
-
-            label.setBounds(
-                x,
-                labelY,
-                labelWidth,
-                labelHeight);
-        };
-
-    //==============================================================
-    // INPUT LABEL
-    // X = 130
-    //==============================================================
-
-    setLabelPosition(
-        inputLabel,
-        130.0f);
-
-    //==============================================================
-    // GAIN LABEL
-    // X = 200
-    //==============================================================
-
-    setLabelPosition(
-        gainLabel,
-        200.0f);
-
-    //==============================================================
-    // BASS LABEL
-    // X = 270
-    //==============================================================
-
-    setLabelPosition(
-        bassLabel,
-        270.0f);
-
-    //==============================================================
-    // MID LABEL
-    // X = 340
-    //==============================================================
-
-    setLabelPosition(
-        midLabel,
-        340.0f);
-
-    //==============================================================
-    // HI LABEL
-    // X = 410
-    //==============================================================
-
-    setLabelPosition(
-        hiLabel,
-        410.0f);
-
-    //==============================================================
-    // VOLUME LABEL
-    // X = 480
-    //==============================================================
-
-    setLabelPosition(
-        volumeLabel,
-        480.0f);
-
-    //==============================================================
-    // MODE LABEL
-    // X = 550
-    //==============================================================
-
-    setLabelPosition(
-        modeLabel,
-        550.0f);
-
-    //==============================================================
-    // AMP LABEL
-    // X = 620
-    //==============================================================
-
-    setLabelPosition(
-        ampLabel,
-        620.0f);
-
-    //==============================================================
-    // MODE SWITCH
-    // CLEAN / DRIVE
-    //==============================================================
-
-    const int modeSwitchWidth =
-        static_cast<int>(
-            52.0f * scale);
-
-    const int modeSwitchHeight =
-        static_cast<int>(
-            24.0f * scale);
-
-    const int modeSwitchX =
-        static_cast<int>(
-            550.0f * scale
-            - modeSwitchWidth * 0.5f);
-
-    const int modeSwitchY =
-        static_cast<int>(
-            330.0f * scale
-            - modeSwitchHeight * 0.5f);
-
-    modeSwitch.setBounds(
-        modeSwitchX,
-        modeSwitchY,
-        modeSwitchWidth,
-        modeSwitchHeight);
-
-    //==============================================================
-    // AMP SWITCH
-    // ON / OFF
-    //==============================================================
-
-    const int ampSwitchWidth =
-        static_cast<int>(
-            42.0f * scale);
-
-    const int ampSwitchHeight =
-        static_cast<int>(
-            24.0f * scale);
-
-    const int ampSwitchX =
-        static_cast<int>(
-            620.0f * scale
-            - ampSwitchWidth * 0.5f);
-
-    const int ampSwitchY =
-        static_cast<int>(
-            330.0f * scale
-            - ampSwitchHeight * 0.5f);
-
-    ampSwitch.setBounds(
-        ampSwitchX,
-        ampSwitchY,
-        ampSwitchWidth,
-        ampSwitchHeight);
-}
-
-//==============================================================================
-// Custom Knob Look And Feel
-//==============================================================================
-
-void AmpSimAudioProcessorEditor::RGKnobLookAndFeel::drawRotarySlider(
-    juce::Graphics& g,
-    int x,
-    int y,
-    int width,
-    int height,
-    float sliderPosProportional,
-    float rotaryStartAngle,
-    float rotaryEndAngle,
-    juce::Slider&)
-{
-    //==============================================================
-    // RADIUS
-    //==============================================================
-
-    const float radius =
-        juce::jmin(
-            static_cast<float>(
-                width),
-            static_cast<float>(
-                height))
-        * 0.5f
-        - 5.0f;
-
-    //==============================================================
-    // CENTER
-    //==============================================================
-
-    const float centreX =
-        static_cast<float>(x)
-        + static_cast<float>(width)
-          * 0.5f;
-
-    const float centreY =
-        static_cast<float>(y)
-        + static_cast<float>(height)
-          * 0.5f;
-
-    //==============================================================
-    // POINTER ANGLE
-    //==============================================================
-
-    const float angle =
-        rotaryStartAngle
-        + sliderPosProportional
-          * (rotaryEndAngle -
-             rotaryStartAngle);
-
-    //==============================================================
-    // WHITE KNOB
-    //==============================================================
-
-    g.setColour(
-        juce::Colours::white);
-
-    g.fillEllipse(
-        centreX - radius,
-        centreY - radius,
-        radius * 2.0f,
-        radius * 2.0f);
-
-    //==============================================================
-    // DARK OUTER RING
-    //==============================================================
-
-    g.setColour(
-        juce::Colour(
-            60,
-            60,
-            60));
-
-    g.drawEllipse(
-        centreX - radius,
-        centreY - radius,
-        radius * 2.0f,
-        radius * 2.0f,
-        2.0f);
-
-    //==============================================================
-    // BLACK POINTER
-    //==============================================================
-
-    const float pointerLength =
-        radius * 0.70f;
-
-    const float pointerThickness =
-        3.0f;
-
-    juce::Path pointer;
-
-    pointer.addRoundedRectangle(
-        -pointerThickness * 0.5f,
-        -pointerLength,
-        pointerThickness,
-        pointerLength,
-        1.5f);
 
     g.setColour(
         juce::Colours::black);
 
-    g.fillPath(
-        pointer,
-        juce::AffineTransform()
-            .rotation(
-                angle)
-            .translated(
-                centreX,
-                centreY));
+    g.drawEllipse(
+        ledX - ledRadius,
+        ledY - ledRadius,
+        ledRadius * 2.0f,
+        ledRadius * 2.0f,
+        1.0f);
+
+    //==============================================================
+    // MODE INDICATOR
+    //==============================================================
+
+    const juce::String modeText =
+        isDriveMode
+            ? "DRIVE"
+            : "CLEAN";
+
+    juce::ignoreUnused(
+        modeText);
+}
+
+//==================================================================
+// RESIZED
+//==================================================================
+
+void AmpSimAudioProcessorEditor::resized()
+{
+    //==============================================================
+    // KNOBS
+    //==============================================================
+
+    gainKnob.setBounds(
+        static_cast<int>(
+            gainX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
+        static_cast<int>(knobSize),
+        static_cast<int>(knobSize));
+
+    bassKnob.setBounds(
+        static_cast<int>(
+            bassX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
+        static_cast<int>(knobSize),
+        static_cast<int>(knobSize));
+
+    midKnob.setBounds(
+        static_cast<int>(
+            midX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
+        static_cast<int>(knobSize),
+        static_cast<int>(knobSize));
+
+    hiKnob.setBounds(
+        static_cast<int>(
+            hiX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
+        static_cast<int>(knobSize),
+        static_cast<int>(knobSize));
+
+    volumeKnob.setBounds(
+        static_cast<int>(
+            volumeX - knobSize * 0.5f),
+        static_cast<int>(
+            controlY - knobSize * 0.5f),
+        static_cast<int>(knobSize),
+        static_cast<int>(knobSize));
+
+    //==============================================================
+    // LABELS
+    //==============================================================
+
+    constexpr int labelWidth =
+        60;
+
+    constexpr int labelHeight =
+        18;
+
+    constexpr int labelY =
+        static_cast<int>(
+            controlY + 30.0f);
+
+    inputLabel.setBounds(
+        static_cast<int>(
+            inputX - labelWidth * 0.5f),
+        labelY,
+        labelWidth,
+        labelHeight);
+
+    gainLabel.setBounds(
+        static_cast<int>(
+            gainX - labelWidth * 0.5f),
+        labelY,
+        labelWidth,
+        labelHeight);
+
+    bassLabel.setBounds(
+        static_cast<int>(
+            bassX - labelWidth * 0.5f),
+        labelY,
+        labelWidth,
+        labelHeight);
+
+    midLabel.setBounds(
+        static_cast<int>(
+            midX - labelWidth * 0.5f),
+        labelY,
+        labelWidth,
+        labelHeight);
+
+    hiLabel.setBounds(
+        static_cast<int>(
+            hiX - labelWidth * 0.5f),
+        labelY,
+        labelWidth,
+        labelHeight);
+
+    volumeLabel.setBounds(
+        static_cast<int>(
+            volumeX - labelWidth * 0.5f),
+        labelY,
+        labelWidth,
+        labelHeight);
+
+    modeLabel.setBounds(
+        static_cast<int>(
+            modeX - labelWidth * 0.5f),
+        labelY,
+        labelWidth,
+        labelHeight);
+
+    ampLabel.setBounds(
+        static_cast<int>(
+            ampX - labelWidth * 0.5f),
+        labelY,
+        labelWidth,
+        labelHeight);
+
+    //==============================================================
+    // MODE SWITCH
+    //==============================================================
+
+    modeSwitch.setBounds(
+        static_cast<int>(
+            modeX - 26.0f),
+        static_cast<int>(
+            controlY - 12.0f),
+        52,
+        24);
+
+    //==============================================================
+    // AMP SWITCH
+    //==============================================================
+
+    ampSwitch.setBounds(
+        static_cast<int>(
+            ampX - 24.0f),
+        static_cast<int>(
+            controlY - 12.0f),
+        48,
+        24);
 }
