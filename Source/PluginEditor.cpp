@@ -15,18 +15,6 @@ namespace
 
     //==============================================================
     // CONTROL POSITIONS
-    //
-    // 50 px center-to-center spacing
-    //
-    // INPUT  205
-    // GAIN   255
-    // MODE   305
-    // BASS   355
-    // MID    405
-    // HI     455
-    // VOLUME 505
-    // AMP    555
-    // LED    595
     //==============================================================
 
     constexpr float inputX  = 205.0f;
@@ -262,94 +250,25 @@ namespace
             //======================================================
             // AMP SWITCH
             //
-            // Outer housing/ring is FIXED.
+            // Circular metallic housing.
+            // Metallic center.
+            // No vertical slot.
             // Only the lever moves ON/OFF.
             //======================================================
 
             const float centerX =
                 w * 0.5f;
 
-            //======================================================
-            // FIXED OUTER HOUSING
-            //======================================================
-
-            g.setColour(
-                juce::Colour(
-                    8,
-                    8,
-                    8));
-
-            g.fillRoundedRectangle(
-                centerX - 10.0f,
-                2.0f,
-                20.0f,
-                h - 4.0f,
-                6.0f);
-
-            // Fixed outer ring
-            g.setColour(
-                juce::Colour(
-                    95,
-                    95,
-                    95));
-
-            g.drawRoundedRectangle(
-                centerX - 10.0f,
-                2.0f,
-                20.0f,
-                h - 4.0f,
-                6.0f,
-                1.2f);
+            const float centerY =
+                h * 0.5f;
 
             //======================================================
-            // FIXED INNER SLOT
+            // CIRCULAR METAL HOUSING
             //======================================================
 
-            g.setColour(
-                juce::Colour(
-                    2,
-                    2,
-                    2));
+            constexpr float outerRadius = 15.0f;
 
-            g.fillRoundedRectangle(
-                centerX - 3.5f,
-                5.0f,
-                7.0f,
-                h - 10.0f,
-                3.5f);
-
-            // Slot highlight
-            g.setColour(
-                juce::Colour(
-                    70,
-                    70,
-                    70));
-
-            g.drawLine(
-                centerX - 0.5f,
-                6.0f,
-                centerX - 0.5f,
-                h - 6.0f,
-                1.0f);
-
-            //======================================================
-            // MOVING LEVER
-            //======================================================
-
-            const float leverCenterY =
-                on
-                    ? 10.0f
-                    : h - 10.0f;
-
-            const float leverLength =
-                12.0f;
-
-            const float endY =
-                on
-                    ? leverCenterY - leverLength
-                    : leverCenterY + leverLength;
-
-            // Lever shadow
+            // Outer shadow
             g.setColour(
                 juce::Colour(
                     0,
@@ -357,14 +276,134 @@ namespace
                     0)
                     .withAlpha(0.85f));
 
+            g.fillEllipse(
+                centerX - outerRadius + 1.5f,
+                centerY - outerRadius + 2.0f,
+                outerRadius * 2.0f,
+                outerRadius * 2.0f);
+
+            // Dark outer edge
+            g.setColour(
+                juce::Colour(
+                    45,
+                    45,
+                    45));
+
+            g.fillEllipse(
+                centerX - outerRadius,
+                centerY - outerRadius,
+                outerRadius * 2.0f,
+                outerRadius * 2.0f);
+
+            // Metallic outer ring
+            g.setColour(
+                juce::Colour(
+                    155,
+                    155,
+                    155));
+
+            g.drawEllipse(
+                centerX - outerRadius,
+                centerY - outerRadius,
+                outerRadius * 2.0f,
+                outerRadius * 2.0f,
+                1.4f);
+
+            //======================================================
+            // METALLIC CENTER
+            //======================================================
+
+            constexpr float centerRadius = 11.5f;
+
+            // Dark bevel
+            g.setColour(
+                juce::Colour(
+                    70,
+                    70,
+                    70));
+
+            g.fillEllipse(
+                centerX - centerRadius,
+                centerY - centerRadius,
+                centerRadius * 2.0f,
+                centerRadius * 2.0f);
+
+            // Main metallic face
+            g.setColour(
+                juce::Colour(
+                    145,
+                    145,
+                    145));
+
+            g.fillEllipse(
+                centerX - 10.3f,
+                centerY - 10.3f,
+                20.6f,
+                20.6f);
+
+            // Center metallic highlight
+            g.setColour(
+                juce::Colour(
+                    205,
+                    205,
+                    205)
+                    .withAlpha(0.8f));
+
+            g.drawEllipse(
+                centerX - 9.5f,
+                centerY - 9.5f,
+                19.0f,
+                19.0f,
+                0.8f);
+
+            //======================================================
+            // SUBTLE DARK INNER SHADING
+            //======================================================
+
+            g.setColour(
+                juce::Colour(
+                    65,
+                    65,
+                    65)
+                    .withAlpha(0.45f));
+
+            g.fillEllipse(
+                centerX - 6.0f,
+                centerY - 6.0f,
+                12.0f,
+                12.0f);
+
+            //======================================================
+            // MOVING LEVER
+            //
+            // ON  = UP
+            // OFF = DOWN
+            //======================================================
+
+            const float leverPivotY =
+                centerY;
+
+            const float leverTipY =
+                on
+                    ? centerY - 8.0f
+                    : centerY + 8.0f;
+
+            // Lever shadow
+            g.setColour(
+                juce::Colour(
+                    0,
+                    0,
+                    0)
+                    .withAlpha(0.75f));
+
             g.drawLine(
-                centerX + 1.5f,
-                leverCenterY + 1.5f,
-                centerX + 1.5f,
-                endY + 1.5f,
+                centerX + 1.2f,
+                leverPivotY + 1.5f,
+                centerX + 1.2f,
+                leverTipY + 1.5f,
                 4.5f);
 
-            // Main lever
+            // Main metallic lever
             g.setColour(
                 juce::Colour(
                     215,
@@ -373,23 +412,24 @@ namespace
 
             g.drawLine(
                 centerX,
-                leverCenterY,
+                leverPivotY,
                 centerX,
-                endY,
+                leverTipY,
                 4.0f);
 
-            // Lever highlight
+            // Lever bright edge
             g.setColour(
                 juce::Colour(
                     250,
                     250,
-                    250));
+                    250)
+                    .withAlpha(0.85f));
 
             g.drawLine(
-                centerX - 0.6f,
-                leverCenterY - 0.6f,
-                centerX - 0.6f,
-                endY - 0.6f,
+                centerX - 0.8f,
+                leverPivotY - 0.5f,
+                centerX - 0.8f,
+                leverTipY - 0.5f,
                 1.0f);
 
             //======================================================
@@ -398,27 +438,41 @@ namespace
 
             g.setColour(
                 juce::Colour(
-                    145,
-                    145,
-                    145));
+                    105,
+                    105,
+                    105));
 
             g.fillEllipse(
-                centerX - 4.5f,
-                endY - 4.5f,
-                9.0f,
-                9.0f);
+                centerX - 4.2f,
+                leverTipY - 4.2f,
+                8.4f,
+                8.4f);
 
             g.setColour(
                 juce::Colour(
-                    235,
-                    235,
-                    235));
+                    225,
+                    225,
+                    225));
 
             g.fillEllipse(
-                centerX - 2.7f,
-                endY - 2.7f,
-                5.4f,
-                5.4f);
+                centerX - 3.0f,
+                leverTipY - 3.0f,
+                6.0f,
+                6.0f);
+
+            // Tip highlight
+            g.setColour(
+                juce::Colour(
+                    255,
+                    255,
+                    255)
+                    .withAlpha(0.65f));
+
+            g.fillEllipse(
+                centerX - 1.4f,
+                leverTipY - 2.0f,
+                2.2f,
+                1.8f);
         }
     };
 
@@ -886,81 +940,131 @@ void AmpSimAudioProcessorEditor::paint(
     //============================================================
     // INPUT JACK
     //
-    // 11 x 11 px
+    // Realistic compact 11 x 11 px socket.
     // Socket only - NOT a switch.
     //============================================================
 
     constexpr float jackRadius =
         5.5f;
 
-    // Dark recessed center
+    // Outer dark mounting shadow
     g.setColour(
         juce::Colour(
-            8,
-            8,
-            8));
+            3,
+            3,
+            3));
 
     g.fillEllipse(
-        inputX - jackRadius,
-        controlY - jackRadius,
-        jackRadius * 2.0f,
-        jackRadius * 2.0f);
+        inputX - 5.5f,
+        controlY - 5.5f,
+        11.0f,
+        11.0f);
 
-    // Metallic outer ring
+    // Metallic outer bezel
     g.setColour(
         juce::Colour(
-            135,
-            135,
-            135));
+            92,
+            92,
+            92));
+
+    g.fillEllipse(
+        inputX - 5.2f,
+        controlY - 5.2f,
+        10.4f,
+        10.4f);
+
+    // Metallic upper-left bevel
+    g.setColour(
+        juce::Colour(
+            190,
+            190,
+            190)
+            .withAlpha(0.85f));
 
     g.drawEllipse(
-        inputX - jackRadius,
-        controlY - jackRadius,
-        jackRadius * 2.0f,
-        jackRadius * 2.0f,
-        1.2f);
+        inputX - 4.9f,
+        controlY - 4.9f,
+        9.8f,
+        9.8f,
+        0.8f);
 
-    //============================================================
-    // SMALL METALLIC HIGHLIGHT
-    //
-    // JUCE-compatible Path::addArc()
-    //============================================================
+    // Dark recessed face
+    g.setColour(
+        juce::Colour(
+            35,
+            35,
+            35));
 
-    juce::Path highlightArc;
-
-    highlightArc.addArc(
+    g.fillEllipse(
         inputX - 4.0f,
         controlY - 4.0f,
         8.0f,
-        8.0f,
-        juce::MathConstants<float>::pi * 1.15f,
-        juce::MathConstants<float>::pi * 1.85f,
+        8.0f);
+
+    // Black jack opening
+    g.setColour(
+        juce::Colour(
+            5,
+            5,
+            5));
+
+    g.fillEllipse(
+        inputX - 2.8f,
+        controlY - 2.8f,
+        5.6f,
+        5.6f);
+
+    // Deep center
+    g.setColour(
+        juce::Colour(
+            0,
+            0,
+            0));
+
+    g.fillEllipse(
+        inputX - 1.8f,
+        controlY - 1.8f,
+        3.6f,
+        3.6f);
+
+    // Metallic highlight arc
+    juce::Path jackHighlight;
+
+    jackHighlight.addArc(
+        inputX - 4.4f,
+        controlY - 4.4f,
+        8.8f,
+        8.8f,
+        juce::MathConstants<float>::pi * 1.12f,
+        juce::MathConstants<float>::pi * 1.72f,
         true);
 
     g.setColour(
         juce::Colour(
-            220,
-            220,
-            220)
-        .withAlpha(0.65f));
+            235,
+            235,
+            235)
+        .withAlpha(0.72f));
 
     g.strokePath(
-        highlightArc,
+        jackHighlight,
         juce::PathStrokeType(
-            0.8f));
+            0.7f));
 
-    // Dark center
+    // Small lower shadow
     g.setColour(
         juce::Colour(
-            2,
-            2,
-            2));
+            0,
+            0,
+            0)
+        .withAlpha(0.65f));
 
-    g.fillEllipse(
-        inputX - 2.2f,
-        controlY - 2.2f,
-        4.4f,
-        4.4f);
+    g.drawEllipse(
+        inputX - jackRadius + 0.7f,
+        controlY - jackRadius + 0.7f,
+        jackRadius * 2.0f - 1.4f,
+        jackRadius * 2.0f - 1.4f,
+        0.5f);
 
     //============================================================
     // AMP RED LED
