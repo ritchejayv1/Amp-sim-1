@@ -122,11 +122,60 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
         "VOLUME");
 
     setupLabel(
+        modeLabel,
+        "MODE");
+
+    setupLabel(
         ampLabel,
         "AMP");
 
     //==============================================================
+    // MODE SWITCH
+    // CLEAN / DRIVE
+    //==============================================================
+
+    modeSwitch.setButtonText(
+        "CLEAN");
+
+    modeSwitch.setToggleState(
+        false,
+        juce::dontSendNotification);
+
+    modeSwitch.setClickingTogglesState(
+        true);
+
+    modeSwitch.setColour(
+        juce::ToggleButton::textColourId,
+        juce::Colours::white);
+
+    modeSwitch.setColour(
+        juce::ToggleButton::tickColourId,
+        juce::Colours::white);
+
+    modeSwitch.setColour(
+        juce::ToggleButton::tickDisabledColourId,
+        juce::Colours::darkgrey);
+
+    modeSwitch.onClick =
+        [this]()
+        {
+            isDriveMode =
+                modeSwitch.getToggleState();
+
+            modeSwitch.setButtonText(
+                isDriveMode
+                    ? "DRIVE"
+                    : "CLEAN");
+
+            repaint();
+        };
+
+    addAndMakeVisible(
+        modeSwitch);
+
+    //==============================================================
     // AMP SWITCH
+    // ON / OFF
     //==============================================================
 
     ampSwitch.setButtonText(
@@ -158,7 +207,9 @@ AmpSimAudioProcessorEditor::AmpSimAudioProcessorEditor(
                 ampSwitch.getToggleState();
 
             ampSwitch.setButtonText(
-                ampIsOn ? "ON" : "OFF");
+                ampIsOn
+                    ? "ON"
+                    : "OFF");
 
             repaint();
         };
@@ -372,6 +423,8 @@ void AmpSimAudioProcessorEditor::paint(
 
     //==============================================================
     // INPUT JACK SOCKET
+    // X = 130
+    // Y = 330
     //==============================================================
 
     const float jackCentreX =
@@ -410,10 +463,17 @@ void AmpSimAudioProcessorEditor::paint(
             45));
 
     g.fillEllipse(
-        jackCentreX - jackRadius + 2.5f * scale,
-        jackCentreY - jackRadius + 2.5f * scale,
-        jackRadius * 2.0f - 5.0f * scale,
-        jackRadius * 2.0f - 5.0f * scale);
+        jackCentreX - jackRadius
+            + 2.5f * scale,
+
+        jackCentreY - jackRadius
+            + 2.5f * scale,
+
+        jackRadius * 2.0f
+            - 5.0f * scale,
+
+        jackRadius * 2.0f
+            - 5.0f * scale);
 
     //==============================================================
     // CENTER HOLE
@@ -447,13 +507,12 @@ void AmpSimAudioProcessorEditor::paint(
     //==============================================================
     // AMP INDICATOR LED
     //
-    // Right side of VOLUME
-    // X = 570
-    // Y = 330
+    // X = 620
+    // Y = 313
     //==============================================================
 
     const float ledX =
-        570.0f * scale;
+        620.0f * scale;
 
     const float ledY =
         313.0f * scale;
@@ -461,7 +520,10 @@ void AmpSimAudioProcessorEditor::paint(
     const float ledRadius =
         5.0f * scale;
 
-    // LED outer ring
+    //==============================================================
+    // LED OUTER RING
+    //==============================================================
+
     g.setColour(
         juce::Colour(
             35,
@@ -469,12 +531,22 @@ void AmpSimAudioProcessorEditor::paint(
             35));
 
     g.fillEllipse(
-        ledX - ledRadius - 2.0f * scale,
-        ledY - ledRadius - 2.0f * scale,
-        (ledRadius + 2.0f * scale) * 2.0f,
-        (ledRadius + 2.0f * scale) * 2.0f);
+        ledX - ledRadius
+            - 2.0f * scale,
 
+        ledY - ledRadius
+            - 2.0f * scale,
+
+        (ledRadius
+            + 2.0f * scale) * 2.0f,
+
+        (ledRadius
+            + 2.0f * scale) * 2.0f);
+
+    //==============================================================
     // LED
+    //==============================================================
+
     if (ampIsOn)
     {
         g.setColour(
@@ -630,6 +702,7 @@ void AmpSimAudioProcessorEditor::resized()
 
     //==============================================================
     // INPUT LABEL
+    // X = 130
     //==============================================================
 
     setLabelPosition(
@@ -637,41 +710,100 @@ void AmpSimAudioProcessorEditor::resized()
         130.0f);
 
     //==============================================================
-    // KNOB LABELS
+    // GAIN LABEL
+    // X = 200
     //==============================================================
 
     setLabelPosition(
         gainLabel,
         200.0f);
 
+    //==============================================================
+    // BASS LABEL
+    // X = 270
+    //==============================================================
+
     setLabelPosition(
         bassLabel,
         270.0f);
+
+    //==============================================================
+    // MID LABEL
+    // X = 340
+    //==============================================================
 
     setLabelPosition(
         midLabel,
         340.0f);
 
+    //==============================================================
+    // HI LABEL
+    // X = 410
+    //==============================================================
+
     setLabelPosition(
         hiLabel,
         410.0f);
+
+    //==============================================================
+    // VOLUME LABEL
+    // X = 480
+    //==============================================================
 
     setLabelPosition(
         volumeLabel,
         480.0f);
 
     //==============================================================
+    // MODE LABEL
+    // X = 550
+    //==============================================================
+
+    setLabelPosition(
+        modeLabel,
+        550.0f);
+
+    //==============================================================
     // AMP LABEL
+    // X = 620
     //==============================================================
 
     setLabelPosition(
         ampLabel,
-        570.0f);
+        620.0f);
+
+    //==============================================================
+    // MODE SWITCH
+    // CLEAN / DRIVE
+    //==============================================================
+
+    const int modeSwitchWidth =
+        static_cast<int>(
+            52.0f * scale);
+
+    const int modeSwitchHeight =
+        static_cast<int>(
+            24.0f * scale);
+
+    const int modeSwitchX =
+        static_cast<int>(
+            550.0f * scale
+            - modeSwitchWidth * 0.5f);
+
+    const int modeSwitchY =
+        static_cast<int>(
+            330.0f * scale
+            - modeSwitchHeight * 0.5f);
+
+    modeSwitch.setBounds(
+        modeSwitchX,
+        modeSwitchY,
+        modeSwitchWidth,
+        modeSwitchHeight);
 
     //==============================================================
     // AMP SWITCH
-    //
-    // Right side of VOLUME
+    // ON / OFF
     //==============================================================
 
     const int ampSwitchWidth =
@@ -684,7 +816,7 @@ void AmpSimAudioProcessorEditor::resized()
 
     const int ampSwitchX =
         static_cast<int>(
-            570.0f * scale
+            620.0f * scale
             - ampSwitchWidth * 0.5f);
 
     const int ampSwitchY =
