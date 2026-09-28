@@ -6,9 +6,12 @@
 
 //==============================================================
 // NeuralAudio
+// NeuralModel.h contains:
+//   NeuralAudio::NeuralModel
+//   NeuralAudio::NeuralModelLoader
 //==============================================================
 
-#include <NeuralAudio/NeuralAudio.h>
+#include <NeuralModel.h>
 
 //==============================================================
 // RG AMP SIM AUDIO PROCESSOR
@@ -104,7 +107,7 @@ public:
 private:
 
     //==============================================================
-    // PARAMETER POINTERS
+    // PARAMETERS
     //==============================================================
 
     std::atomic<float>* gainParameter   = nullptr;
@@ -145,8 +148,12 @@ private:
 
     bool namLoaded = false;
 
-    // NAM processing buffers
+    //==============================================================
+    // NAM AUDIO BUFFERS
+    //==============================================================
+
     std::vector<float> namInputData;
+
     std::vector<float> namOutputData;
 
     //==============================================================
@@ -158,9 +165,9 @@ private:
     //==============================================================
     // EQ FILTERS
     //
-    // BASS
-    // MID
-    // HIGH
+    // 1 = BASS
+    // 2 = MID
+    // 3 = HIGH
     //==============================================================
 
     using Filter =
@@ -214,3 +221,15 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AmpSimAudioProcessor)
 };
+
+Bakit ito ang tama
+
+Sa official NeuralAudio source, ang "NeuralModel.h" mismo ang naglalaman ng:
+
+namespace NeuralAudio
+{
+    class NeuralModel
+    ...
+    class NeuralModelLoader
+    ...
+}
