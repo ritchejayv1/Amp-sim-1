@@ -464,8 +464,8 @@ void AmpSimAudioProcessor::processBlock(
             gainValue,
             0.0f,
             10.0f,
-            -15.0f,
-            6.0f);
+            -18.0f,
+             3.5.0f);
 
     inputGain.setGainDecibels(
         inputGainDb);
@@ -616,7 +616,7 @@ void AmpSimAudioProcessor::processBlock(
     //==========================================================
 
     constexpr float fixedOutputBoostDb = 24.0f;
-    constexpr float cleanMakeupGainDb = 1.0f;
+    constexpr float cleanMakeupGainDb = 4.5f;
 
     const float totalOutputBoostDb =
         driveMode
