@@ -72,7 +72,7 @@ namespace
 
             if (! isAmp)
             {
-                constexpr float buttonSize = 16.0f;
+                constexpr float buttonSize = 11.5f;
 
                 const float bx =
                     (w - buttonSize) * 0.5f;
@@ -80,7 +80,10 @@ namespace
                 const float by =
                     (h - buttonSize) * 0.5f;
 
-                // Shadow
+                //==================================================
+                // SHADOW
+                //==================================================
+
                 g.setColour(
                     juce::Colour(
                         0,
@@ -89,15 +92,22 @@ namespace
                         .withAlpha(0.9f));
 
                 g.fillRoundedRectangle(
-                    bx + 1.2f,
-                    by + 1.8f,
+                    bx + 1.0f,
+                    by + 1.4f,
                     buttonSize,
                     buttonSize,
-                    2.0f);
+                    1.8f);
+
+                //==================================================
+                // MODE ON / OFF
+                //==================================================
 
                 if (on)
                 {
-                    // Blue body
+                    //==============================================
+                    // BLUE ON BODY
+                    //==============================================
+
                     g.setColour(
                         juce::Colour(
                             20,
@@ -106,12 +116,15 @@ namespace
 
                     g.fillRoundedRectangle(
                         bx,
-                        by + 1.0f,
+                        by + 0.7f,
                         buttonSize,
-                        buttonSize - 1.0f,
-                        2.0f);
+                        buttonSize - 0.7f,
+                        1.8f);
 
-                    // Blue border
+                    //==============================================
+                    // BLUE ON BORDER
+                    //==============================================
+
                     g.setColour(
                         juce::Colour(
                             85,
@@ -120,13 +133,16 @@ namespace
 
                     g.drawRoundedRectangle(
                         bx,
-                        by + 1.0f,
+                        by + 0.7f,
                         buttonSize,
-                        buttonSize - 1.0f,
-                        2.0f,
-                        0.8f);
+                        buttonSize - 0.7f,
+                        1.8f,
+                        0.7f);
 
-                    // Inner blue
+                    //==============================================
+                    // INNER BLUE
+                    //==============================================
+
                     g.setColour(
                         juce::Colour(
                             45,
@@ -134,13 +150,16 @@ namespace
                             225));
 
                     g.fillRoundedRectangle(
-                        bx + 2.0f,
-                        by + 3.0f,
-                        buttonSize - 4.0f,
-                        buttonSize - 5.0f,
-                        1.2f);
+                        bx + 1.8f,
+                        by + 2.2f,
+                        buttonSize - 3.6f,
+                        buttonSize - 3.8f,
+                        1.0f);
 
-                    // Highlight
+                    //==============================================
+                    // HIGHLIGHT
+                    //==============================================
+
                     g.setColour(
                         juce::Colour(
                             180,
@@ -149,61 +168,90 @@ namespace
                         .withAlpha(0.65f));
 
                     g.drawLine(
-                        bx + 3.0f,
-                        by + 3.0f,
-                        bx + buttonSize - 3.0f,
-                        by + 3.0f,
-                        0.8f);
+                        bx + 2.2f,
+                        by + 2.0f,
+                        bx + buttonSize - 2.2f,
+                        by + 2.0f,
+                        0.7f);
                 }
                 else
                 {
-                    // Off body
+                    //==============================================
+                    // DARK BLUE OFF BODY
+                    //==============================================
+
                     g.setColour(
                         juce::Colour(
-                            45,
-                            45,
-                            45));
+                            15,
+                            35,
+                            60));
 
                     g.fillRoundedRectangle(
                         bx,
                         by,
                         buttonSize,
                         buttonSize,
-                        2.0f);
+                        1.8f);
 
-                    // Border
+                    //==============================================
+                    // DARK BLUE BORDER
+                    //==============================================
+
                     g.setColour(
                         juce::Colour(
-                            145,
-                            145,
-                            145));
+                            55,
+                            90,
+                            125));
 
                     g.drawRoundedRectangle(
                         bx,
                         by,
                         buttonSize,
                         buttonSize,
-                        2.0f,
-                        0.8f);
+                        1.8f,
+                        0.7f);
 
-                    // Highlight
+                    //==============================================
+                    // INNER DARK BLUE
+                    //==============================================
+
                     g.setColour(
                         juce::Colour(
-                            205,
-                            205,
-                            205)
-                        .withAlpha(0.4f));
+                            20,
+                            50,
+                            80));
+
+                    g.fillRoundedRectangle(
+                        bx + 1.8f,
+                        by + 1.8f,
+                        buttonSize - 3.6f,
+                        buttonSize - 3.6f,
+                        1.0f);
+
+                    //==============================================
+                    // SUBTLE BLUE HIGHLIGHT
+                    //==============================================
+
+                    g.setColour(
+                        juce::Colour(
+                            90,
+                            130,
+                            165)
+                        .withAlpha(0.45f));
 
                     g.drawLine(
                         bx + 2.0f,
                         by + 2.0f,
                         bx + buttonSize - 2.0f,
                         by + 2.0f,
-                        0.8f);
+                        0.7f);
                 }
 
-                // Small indicator LED
-                const float ledRadius = 2.0f;
+                //==================================================
+                // SMALL INDICATOR LED
+                //==================================================
+
+                const float ledRadius = 1.65f;
 
                 const float ledX =
                     bx + buttonSize * 0.5f;
@@ -218,9 +266,9 @@ namespace
                             210,
                             255)
                         : juce::Colour(
-                            18,
-                            18,
-                            18));
+                            8,
+                            20,
+                            35));
 
                 g.fillEllipse(
                     ledX - ledRadius,
@@ -238,10 +286,10 @@ namespace
                         .withAlpha(0.75f));
 
                     g.fillEllipse(
-                        ledX - 0.8f,
-                        ledY - 0.8f,
-                        1.6f,
-                        1.6f);
+                        ledX - 0.65f,
+                        ledY - 0.65f,
+                        1.3f,
+                        1.3f);
                 }
 
                 return;
@@ -250,10 +298,9 @@ namespace
             //======================================================
             // AMP SWITCH
             //
-            // Circular metallic housing.
-            // Metallic center.
-            // No vertical slot.
-            // Only the lever moves ON/OFF.
+            // Outer housing REMOVED.
+            // Metallic center retained.
+            // Lever moves ON/OFF.
             //======================================================
 
             const float centerX =
@@ -261,53 +308,6 @@ namespace
 
             const float centerY =
                 h * 0.5f;
-
-            //======================================================
-            // CIRCULAR METAL HOUSING
-            //======================================================
-
-            constexpr float outerRadius = 15.0f;
-
-            // Outer shadow
-            g.setColour(
-                juce::Colour(
-                    0,
-                    0,
-                    0)
-                    .withAlpha(0.85f));
-
-            g.fillEllipse(
-                centerX - outerRadius + 1.5f,
-                centerY - outerRadius + 2.0f,
-                outerRadius * 2.0f,
-                outerRadius * 2.0f);
-
-            // Dark outer edge
-            g.setColour(
-                juce::Colour(
-                    45,
-                    45,
-                    45));
-
-            g.fillEllipse(
-                centerX - outerRadius,
-                centerY - outerRadius,
-                outerRadius * 2.0f,
-                outerRadius * 2.0f);
-
-            // Metallic outer ring
-            g.setColour(
-                juce::Colour(
-                    155,
-                    155,
-                    155));
-
-            g.drawEllipse(
-                centerX - outerRadius,
-                centerY - outerRadius,
-                outerRadius * 2.0f,
-                outerRadius * 2.0f,
-                1.4f);
 
             //======================================================
             // METALLIC CENTER
@@ -388,7 +388,10 @@ namespace
                     ? centerY - 8.0f
                     : centerY + 8.0f;
 
-            // Lever shadow
+            //======================================================
+            // LEVER SHADOW
+            //======================================================
+
             g.setColour(
                 juce::Colour(
                     0,
@@ -403,7 +406,10 @@ namespace
                 leverTipY + 1.5f,
                 4.5f);
 
-            // Main metallic lever
+            //======================================================
+            // MAIN METALLIC LEVER
+            //======================================================
+
             g.setColour(
                 juce::Colour(
                     215,
@@ -417,7 +423,10 @@ namespace
                 leverTipY,
                 4.0f);
 
-            // Lever bright edge
+            //======================================================
+            // LEVER BRIGHT EDGE
+            //======================================================
+
             g.setColour(
                 juce::Colour(
                     250,
@@ -940,14 +949,18 @@ void AmpSimAudioProcessorEditor::paint(
     //============================================================
     // INPUT JACK
     //
-    // Realistic compact 11 x 11 px socket.
+    // Socket remains compact.
+    // Metallic bezel = 11.5 x 11.5 px.
     // Socket only - NOT a switch.
     //============================================================
 
     constexpr float jackRadius =
         5.5f;
 
-    // Outer dark mounting shadow
+    //============================================================
+    // OUTER DARK MOUNTING SHADOW
+    //============================================================
+
     g.setColour(
         juce::Colour(
             3,
@@ -960,20 +973,28 @@ void AmpSimAudioProcessorEditor::paint(
         11.0f,
         11.0f);
 
-    // Metallic outer bezel
+    //============================================================
+    // METALLIC OUTER BEZEL
+    //
+    // 11.5 x 11.5 px
+    //============================================================
+
     g.setColour(
         juce::Colour(
-            92,
-            92,
-            92));
+            110,
+            110,
+            110));
 
     g.fillEllipse(
-        inputX - 5.2f,
-        controlY - 5.2f,
-        10.4f,
-        10.4f);
+        inputX - 5.75f,
+        controlY - 5.75f,
+        11.5f,
+        11.5f);
 
-    // Metallic upper-left bevel
+    //============================================================
+    // METALLIC UPPER-LEFT BEVEL
+    //============================================================
+
     g.setColour(
         juce::Colour(
             190,
@@ -988,7 +1009,10 @@ void AmpSimAudioProcessorEditor::paint(
         9.8f,
         0.8f);
 
-    // Dark recessed face
+    //============================================================
+    // DARK RECESSED FACE
+    //============================================================
+
     g.setColour(
         juce::Colour(
             35,
@@ -1001,7 +1025,10 @@ void AmpSimAudioProcessorEditor::paint(
         8.0f,
         8.0f);
 
-    // Black jack opening
+    //============================================================
+    // BLACK JACK OPENING
+    //============================================================
+
     g.setColour(
         juce::Colour(
             5,
@@ -1014,7 +1041,10 @@ void AmpSimAudioProcessorEditor::paint(
         5.6f,
         5.6f);
 
-    // Deep center
+    //============================================================
+    // DEEP CENTER
+    //============================================================
+
     g.setColour(
         juce::Colour(
             0,
@@ -1027,7 +1057,10 @@ void AmpSimAudioProcessorEditor::paint(
         3.6f,
         3.6f);
 
-    // Metallic highlight arc
+    //============================================================
+    // METALLIC HIGHLIGHT ARC
+    //============================================================
+
     juce::Path jackHighlight;
 
     jackHighlight.addArc(
@@ -1051,7 +1084,10 @@ void AmpSimAudioProcessorEditor::paint(
         juce::PathStrokeType(
             0.7f));
 
-    // Small lower shadow
+    //============================================================
+    // SMALL LOWER SHADOW
+    //============================================================
+
     g.setColour(
         juce::Colour(
             0,
@@ -1079,7 +1115,10 @@ void AmpSimAudioProcessorEditor::paint(
     constexpr float ledRadius =
         7.0f;
 
-    // Outer shadow
+    //============================================================
+    // OUTER SHADOW
+    //============================================================
+
     g.setColour(
         juce::Colour(
             5,
@@ -1092,7 +1131,10 @@ void AmpSimAudioProcessorEditor::paint(
         (ledRadius + 2.0f) * 2.0f,
         (ledRadius + 2.0f) * 2.0f);
 
+    //============================================================
     // LED
+    //============================================================
+
     g.setColour(
         ampIsOn
             ? juce::Colour(
@@ -1110,7 +1152,10 @@ void AmpSimAudioProcessorEditor::paint(
         ledRadius * 2.0f,
         ledRadius * 2.0f);
 
-    // LED highlight
+    //============================================================
+    // LED HIGHLIGHT
+    //============================================================
+
     if (ampIsOn)
     {
         g.setColour(
@@ -1127,7 +1172,10 @@ void AmpSimAudioProcessorEditor::paint(
             4.4f);
     }
 
-    // LED border
+    //============================================================
+    // LED BORDER
+    //============================================================
+
     g.setColour(
         juce::Colour(
             20,
@@ -1274,6 +1322,9 @@ void AmpSimAudioProcessorEditor::resized()
 
     //============================================================
     // MODE SWITCH
+    //
+    // Visual button = 11.5 x 11.5 px
+    // Clickable area = 44 x 22 px
     //============================================================
 
     modeSwitch.setBounds(
@@ -1286,6 +1337,9 @@ void AmpSimAudioProcessorEditor::resized()
 
     //============================================================
     // AMP SWITCH
+    //
+    // Visual metallic center = 23 px
+    // Clickable area = 60 x 34 px
     //============================================================
 
     ampSwitch.setBounds(
