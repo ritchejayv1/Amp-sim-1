@@ -1263,7 +1263,7 @@ void AmpSimAudioProcessorEditor::paint(
             juce::Font::plain));
 
     g.drawText(
-        "© RG Electronics. All Rights Reserved.",
+        "RG Electronics. All Rights Reserved.",
         getWidth() - 250,
         getHeight() - 24,
         235,
