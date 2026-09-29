@@ -484,7 +484,19 @@ void AmpSimAudioProcessor::processBlock(
         inputGain.process(context);
     }
      if (!driveMode)
-     monoBuffer.applyGain(1.4125f);
+    {
+    monoBuffer.applyGain(1.4125f);
+
+    constexpr float ledClip = 0.65f;
+
+    for (int i = 0; i < numSamples; ++i)
+    {
+        monoData[i] = juce::jlimit(
+            -ledClip,
+            ledClip,
+            monoData[i]);
+     }
+  }
 
     //==========================================================
     // NAM
