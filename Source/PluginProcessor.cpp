@@ -452,7 +452,7 @@ void AmpSimAudioProcessor::processBlock(
         inputGainDb =
             juce::jmin(
                 inputGainDb,
-                0.0f);
+                -1.0f);
     }
 
     inputGain.setGainDecibels(
