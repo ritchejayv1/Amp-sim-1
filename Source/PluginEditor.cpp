@@ -265,7 +265,7 @@ namespace
             }
 
             //======================================================
-            // AMP SWITCH
+            // POWER SWITCH
             //
             // Outer housing removed.
             // Metallic center retained.
@@ -519,11 +519,11 @@ AmpSimAudioProcessorEditor(
 
     setupLabel(
         midLabel,
-        "MID");
+        "MIDDLE");
 
     setupLabel(
         hiLabel,
-        "HI");
+        "TREBLE");
 
     setupLabel(
         volumeLabel,
@@ -531,7 +531,7 @@ AmpSimAudioProcessorEditor(
 
     setupLabel(
         ampLabel,
-        "AMP");
+        "POWER");
 
     //============================================================
     // MODE SWITCH
@@ -573,7 +573,7 @@ AmpSimAudioProcessorEditor(
         };
 
     //============================================================
-    // AMP SWITCH
+    // POWER SWITCH
     //============================================================
 
     ampSwitch.setButtonText("");
@@ -1015,10 +1015,6 @@ void AmpSimAudioProcessorEditor::paint(
 
     //============================================================
     // INPUT JACK
-    //
-    // Socket remains compact.
-    // Metallic bezel = 11.5 x 11.5 px.
-    // Socket only - NOT a switch.
     //============================================================
 
     constexpr float jackRadius =
@@ -1168,7 +1164,7 @@ void AmpSimAudioProcessorEditor::paint(
         0.5f);
 
     //============================================================
-    // AMP RED LED
+    // POWER RED LED
     //============================================================
 
     constexpr float ledX =
@@ -1422,7 +1418,7 @@ void AmpSimAudioProcessorEditor::resized()
         22);
 
     //============================================================
-    // AMP SWITCH
+    // POWER SWITCH
     //
     // Visual metallic center = 23 px
     // Clickable area = 60 x 34 px
