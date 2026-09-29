@@ -260,10 +260,6 @@ void AmpSimAudioProcessor::loadNAM()
     namLoaded = false;
     namModel.reset();
 
-    //==========================================================
-    // WRITE EMBEDDED NAM TO TEMP FILE
-    //==========================================================
-
     const auto tempFile =
         juce::File::getSpecialLocation(
             juce::File::tempDirectory)
@@ -273,10 +269,6 @@ void AmpSimAudioProcessor::loadNAM()
     tempFile.replaceWithData(
         BinaryData::RG_MBDRprecision_nam,
         BinaryData::RG_MBDRprecision_namSize);
-
-    //==========================================================
-    // CREATE NAM MODEL
-    //==========================================================
 
     try
     {
@@ -305,10 +297,6 @@ void AmpSimAudioProcessor::loadNAM()
 
 void AmpSimAudioProcessor::loadIR()
 {
-    //==========================================================
-    // WRITE EMBEDDED IR TO TEMP FILE
-    //==========================================================
-
     const auto tempFile =
         juce::File::getSpecialLocation(
             juce::File::tempDirectory)
@@ -319,15 +307,7 @@ void AmpSimAudioProcessor::loadIR()
         BinaryData::RG_412_MB_mic_1_wav,
         BinaryData::RG_412_MB_mic_1_wavSize);
 
-    //==========================================================
-    // RESET CONVOLUTION
-    //==========================================================
-
     irConvolution.reset();
-
-    //==========================================================
-    // LOAD IMPULSE RESPONSE
-    //==========================================================
 
     irConvolution.loadImpulseResponse(
         tempFile,
@@ -335,10 +315,6 @@ void AmpSimAudioProcessor::loadIR()
         juce::dsp::Convolution::Trim::yes,
         0,
         juce::dsp::Convolution::Normalise::yes);
-
-    //==========================================================
-    // PREPARE
-    //==========================================================
 
     irConvolution.prepare(monoSpec);
 }
@@ -459,15 +435,28 @@ void AmpSimAudioProcessor::processBlock(
     // INPUT GAIN
     //==========================================================
 
-    const float inputGainDb =
+    float inputGainDb =
         juce::jmap(
             gainValue,
             0.0f,
             10.0f,
             -22.0f,
-             2.0f);
+            2.0f);
 
-    inputGain.setGainDecibels(inputGainDb);
+    //==========================================================
+    // CLEAN MODE MAXIMUM GAIN
+    //==========================================================
+
+    if (!driveMode)
+    {
+        inputGainDb =
+            juce::jmin(
+                inputGainDb,
+                0.0f);
+    }
+
+    inputGain.setGainDecibels(
+        inputGainDb);
 
     {
         juce::dsp::AudioBlock<float> audioBlock(
@@ -483,20 +472,16 @@ void AmpSimAudioProcessor::processBlock(
 
         inputGain.process(context);
     }
-     if (!driveMode)
-    {
-    monoBuffer.applyGain(1.4125f);
 
-    constexpr float ledClip = 0.65f;
+    //==========================================================
+    // CLEAN +3 dB BOOST
+    //==========================================================
 
-    for (int i = 0; i < numSamples; ++i)
+    if (!driveMode)
     {
-        monoData[i] = juce::jlimit(
-            -ledClip,
-            ledClip,
-            monoData[i]);
-     }
-  }
+        monoBuffer.applyGain(
+            1.4125f);
+    }
 
     //==========================================================
     // NAM
@@ -634,7 +619,8 @@ void AmpSimAudioProcessor::processBlock(
     const float totalOutputBoostDb =
         driveMode
             ? fixedOutputBoostDb
-            : fixedOutputBoostDb + cleanMakeupGainDb;
+            : fixedOutputBoostDb +
+              cleanMakeupGainDb;
 
     outputGain.setGainDecibels(
         totalOutputBoostDb);
