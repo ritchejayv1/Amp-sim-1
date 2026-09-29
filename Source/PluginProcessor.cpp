@@ -531,6 +531,32 @@ void AmpSimAudioProcessor::processBlock(
     }
 
     //==========================================================
+    // SIMPLE CLEAN AMP
+    //==========================================================
+    //
+    // CLEAN mode:
+    // Input Gain -> gentle clean preamp
+    //
+    // DRIVE mode skips this section and goes to NAM.
+    //==========================================================
+
+    if (!driveMode)
+    {
+        constexpr float cleanGain = 1.15f;
+
+        for (int i = 0;
+             i < numSamples;
+             ++i)
+        {
+            const float x =
+                monoData[i] * cleanGain;
+
+            monoData[i] =
+                std::tanh(x) * 0.95f;
+        }
+    }
+
+    //==========================================================
     // DRIVE MODE -> NAM
     //==========================================================
 
@@ -656,11 +682,10 @@ void AmpSimAudioProcessor::processBlock(
     // OUTPUT BOOST
     //==========================================================
     //
-    // DRIVE = +18 dB
-    // CLEAN = +30 dB
+    // DRIVE = +24 dB
+    // CLEAN = +27.5 dB
     //
-    // CLEAN gets +12 dB additional makeup gain because
-    // the NAM DRIVE path is naturally louder than CLEAN.
+    // CLEAN receives +3.5 dB additional makeup gain.
     //
     // AMP OFF returns before this section, so bypass remains
     // completely dry.
