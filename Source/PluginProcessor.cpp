@@ -465,7 +465,7 @@ void AmpSimAudioProcessor::processBlock(
             0.0f,
             10.0f,
             -18.0f,
-             3.5.0f);
+             3.5f);
 
     inputGain.setGainDecibels(
         inputGainDb);
