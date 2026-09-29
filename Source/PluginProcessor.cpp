@@ -467,8 +467,7 @@ void AmpSimAudioProcessor::processBlock(
             -22.0f,
              2.0f);
 
-    inputGain.setGainDecibels(
-        inputGainDb);
+    inputGain.setGainDecibels(inputGainDb);
 
     {
         juce::dsp::AudioBlock<float> audioBlock(
@@ -484,6 +483,8 @@ void AmpSimAudioProcessor::processBlock(
 
         inputGain.process(context);
     }
+     if (!driveMode)
+     monoBuffer.applyGain(1.4125f);
 
     //==========================================================
     // NAM
