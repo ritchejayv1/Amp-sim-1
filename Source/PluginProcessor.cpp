@@ -670,7 +670,7 @@ void AmpSimAudioProcessor::processBlock(
         24.0f;
 
     constexpr float cleanMakeupGainDb =
-        8.0f;
+        3.5f;
 
     const float totalOutputBoostDb =
         driveMode
