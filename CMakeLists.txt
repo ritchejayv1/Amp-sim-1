@@ -136,6 +136,7 @@ target_compile_definitions(
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
+        JUCE_DISPLAY_SPLASH_SCREEN=0
 )
 
 #==============================================================
