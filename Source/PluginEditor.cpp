@@ -80,10 +80,7 @@ namespace
                 const float by =
                     (h - buttonSize) * 0.5f;
 
-                //==================================================
-                // SHADOW
-                //==================================================
-
+                // Shadow
                 g.setColour(
                     juce::Colour(
                         0,
@@ -99,15 +96,11 @@ namespace
                     1.8f);
 
                 //==================================================
-                // MODE ON / OFF
+                // MODE ON
                 //==================================================
 
                 if (on)
                 {
-                    //==============================================
-                    // BLUE ON BODY
-                    //==============================================
-
                     g.setColour(
                         juce::Colour(
                             20,
@@ -120,10 +113,6 @@ namespace
                         buttonSize,
                         buttonSize - 0.7f,
                         1.8f);
-
-                    //==============================================
-                    // BLUE ON BORDER
-                    //==============================================
 
                     g.setColour(
                         juce::Colour(
@@ -139,10 +128,6 @@ namespace
                         1.8f,
                         0.7f);
 
-                    //==============================================
-                    // INNER BLUE
-                    //==============================================
-
                     g.setColour(
                         juce::Colour(
                             45,
@@ -155,10 +140,6 @@ namespace
                         buttonSize - 3.6f,
                         buttonSize - 3.8f,
                         1.0f);
-
-                    //==============================================
-                    // HIGHLIGHT
-                    //==============================================
 
                     g.setColour(
                         juce::Colour(
@@ -176,9 +157,9 @@ namespace
                 }
                 else
                 {
-                    //==============================================
-                    // DARK BLUE OFF BODY
-                    //==============================================
+                    //================================================
+                    // MODE OFF - DARK BLUE
+                    //================================================
 
                     g.setColour(
                         juce::Colour(
@@ -192,10 +173,6 @@ namespace
                         buttonSize,
                         buttonSize,
                         1.8f);
-
-                    //==============================================
-                    // DARK BLUE BORDER
-                    //==============================================
 
                     g.setColour(
                         juce::Colour(
@@ -211,10 +188,6 @@ namespace
                         1.8f,
                         0.7f);
 
-                    //==============================================
-                    // INNER DARK BLUE
-                    //==============================================
-
                     g.setColour(
                         juce::Colour(
                             20,
@@ -227,10 +200,6 @@ namespace
                         buttonSize - 3.6f,
                         buttonSize - 3.6f,
                         1.0f);
-
-                    //==============================================
-                    // SUBTLE BLUE HIGHLIGHT
-                    //==============================================
 
                     g.setColour(
                         juce::Colour(
@@ -248,7 +217,7 @@ namespace
                 }
 
                 //==================================================
-                // SMALL INDICATOR LED
+                // MODE INDICATOR
                 //==================================================
 
                 const float ledRadius = 1.65f;
@@ -298,9 +267,10 @@ namespace
             //======================================================
             // AMP SWITCH
             //
-            // Outer housing REMOVED.
+            // Outer housing removed.
             // Metallic center retained.
-            // Lever moves ON/OFF.
+            // ON  = lever UP
+            // OFF = lever DOWN
             //======================================================
 
             const float centerX =
@@ -309,13 +279,12 @@ namespace
             const float centerY =
                 h * 0.5f;
 
+            constexpr float centerRadius = 11.5f;
+
             //======================================================
             // METALLIC CENTER
             //======================================================
 
-            constexpr float centerRadius = 11.5f;
-
-            // Dark bevel
             g.setColour(
                 juce::Colour(
                     70,
@@ -328,7 +297,6 @@ namespace
                 centerRadius * 2.0f,
                 centerRadius * 2.0f);
 
-            // Main metallic face
             g.setColour(
                 juce::Colour(
                     145,
@@ -341,7 +309,6 @@ namespace
                 20.6f,
                 20.6f);
 
-            // Center metallic highlight
             g.setColour(
                 juce::Colour(
                     205,
@@ -357,7 +324,7 @@ namespace
                 0.8f);
 
             //======================================================
-            // SUBTLE DARK INNER SHADING
+            // INNER SHADING
             //======================================================
 
             g.setColour(
@@ -374,10 +341,7 @@ namespace
                 12.0f);
 
             //======================================================
-            // MOVING LEVER
-            //
-            // ON  = UP
-            // OFF = DOWN
+            // LEVER
             //======================================================
 
             const float leverPivotY =
@@ -388,10 +352,7 @@ namespace
                     ? centerY - 8.0f
                     : centerY + 8.0f;
 
-            //======================================================
-            // LEVER SHADOW
-            //======================================================
-
+            // Lever shadow
             g.setColour(
                 juce::Colour(
                     0,
@@ -406,10 +367,7 @@ namespace
                 leverTipY + 1.5f,
                 4.5f);
 
-            //======================================================
-            // MAIN METALLIC LEVER
-            //======================================================
-
+            // Main lever
             g.setColour(
                 juce::Colour(
                     215,
@@ -423,10 +381,7 @@ namespace
                 leverTipY,
                 4.0f);
 
-            //======================================================
-            // LEVER BRIGHT EDGE
-            //======================================================
-
+            // Bright edge
             g.setColour(
                 juce::Colour(
                     250,
@@ -441,10 +396,7 @@ namespace
                 leverTipY - 0.5f,
                 1.0f);
 
-            //======================================================
-            // LEVER TIP
-            //======================================================
-
+            // Lever tip
             g.setColour(
                 juce::Colour(
                     105,
@@ -758,6 +710,7 @@ void AmpSimAudioProcessorEditor::setupKnob(
     slider.setLookAndFeel(
         &knobLookAndFeel);
 
+    // KEEP VALUE POPUP
     slider.setPopupDisplayEnabled(
         true,
         true,
@@ -831,15 +784,28 @@ RGKnobLookAndFeel::drawRotarySlider(
         static_cast<float>(y)
         + static_cast<float>(height) * 0.5f;
 
-    const float radius =
-        size * 0.5f - 2.0f;
+    //==============================================================
+    // KNOB DIMENSIONS
+    //==============================================================
 
-    // Outer dark ring
+    const float radius =
+        size * 0.5f - 1.5f;
+
+    const float bevelRadius =
+        radius - 1.0f;
+
+    const float knobRadius =
+        bevelRadius - 2.0f;
+
+    //==============================================================
+    // OUTER SHADOW / BEZEL
+    //==============================================================
+
     g.setColour(
         juce::Colour(
-            20,
-            20,
-            20));
+            8,
+            8,
+            8));
 
     g.fillEllipse(
         cx - radius,
@@ -847,12 +813,31 @@ RGKnobLookAndFeel::drawRotarySlider(
         radius * 2.0f,
         radius * 2.0f);
 
-    // White knob
-    const float knobRadius =
-        radius - 3.0f;
+    //==============================================================
+    // DARK METALLIC BEVEL
+    //==============================================================
 
     g.setColour(
-        juce::Colours::white);
+        juce::Colour(
+            70,
+            70,
+            70));
+
+    g.fillEllipse(
+        cx - bevelRadius,
+        cy - bevelRadius,
+        bevelRadius * 2.0f,
+        bevelRadius * 2.0f);
+
+    //==============================================================
+    // MAIN KNOB BODY
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            225,
+            225,
+            225));
 
     g.fillEllipse(
         cx - knobRadius,
@@ -860,14 +845,82 @@ RGKnobLookAndFeel::drawRotarySlider(
         knobRadius * 2.0f,
         knobRadius * 2.0f);
 
-    // Pointer
+    //==============================================================
+    // LOWER SHADING
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            155,
+            155,
+            155)
+        .withAlpha(0.35f));
+
+    g.fillEllipse(
+        cx - knobRadius + 1.0f,
+        cy - knobRadius + 2.0f,
+        knobRadius * 2.0f - 2.0f,
+        knobRadius * 2.0f - 1.0f);
+
+    //==============================================================
+    // TOP HIGHLIGHT
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            255,
+            255,
+            255)
+        .withAlpha(0.75f));
+
+    g.fillEllipse(
+        cx - knobRadius + 2.0f,
+        cy - knobRadius + 1.0f,
+        knobRadius * 2.0f - 4.0f,
+        knobRadius * 0.75f);
+
+    //==============================================================
+    // OUTER BEVEL HIGHLIGHT
+    //==============================================================
+
+    g.setColour(
+        juce::Colour(
+            245,
+            245,
+            245)
+        .withAlpha(0.8f));
+
+    g.drawEllipse(
+        cx - knobRadius,
+        cy - knobRadius,
+        knobRadius * 2.0f,
+        knobRadius * 2.0f,
+        0.8f);
+
+    //==============================================================
+    // POINTER
+    //==============================================================
+
     const float angle =
         rotaryStartAngle
         + sliderPosProportional
           * (rotaryEndAngle - rotaryStartAngle);
 
+    const float pointerStart =
+        knobRadius * 0.18f;
+
     const float pointerLength =
-        knobRadius * 0.68f;
+        knobRadius * 0.72f;
+
+    const float pointerStartX =
+        cx
+        + std::cos(angle)
+          * pointerStart;
+
+    const float pointerStartY =
+        cy
+        + std::sin(angle)
+          * pointerStart;
 
     const float pointerX =
         cx
@@ -879,44 +932,58 @@ RGKnobLookAndFeel::drawRotarySlider(
         + std::sin(angle)
           * pointerLength;
 
-    // Pointer shadow
+    //==============================================================
+    // POINTER SHADOW
+    //==============================================================
+
     g.setColour(
         juce::Colour(
             0,
             0,
             0)
-            .withAlpha(0.35f));
+        .withAlpha(0.35f));
 
     g.drawLine(
-        cx + 0.8f,
-        cy + 0.8f,
-        pointerX + 0.8f,
-        pointerY + 0.8f,
+        pointerStartX + 0.7f,
+        pointerStartY + 0.7f,
+        pointerX + 0.7f,
+        pointerY + 0.7f,
         2.8f);
 
-    // Pointer
+    //==============================================================
+    // MAIN POINTER
+    //==============================================================
+
     g.setColour(
-        juce::Colours::black);
+        juce::Colour(
+            25,
+            25,
+            25));
 
     g.drawLine(
-        cx,
-        cy,
+        pointerStartX,
+        pointerStartY,
         pointerX,
         pointerY,
         2.2f);
 
-    // Center
+    //==============================================================
+    // POINTER HIGHLIGHT
+    //==============================================================
+
     g.setColour(
         juce::Colour(
-            35,
-            35,
-            35));
+            255,
+            255,
+            255)
+        .withAlpha(0.45f));
 
-    g.fillEllipse(
-        cx - 2.0f,
-        cy - 2.0f,
-        4.0f,
-        4.0f);
+    g.drawLine(
+        pointerStartX - 0.5f,
+        pointerStartY - 0.5f,
+        pointerX - 0.5f,
+        pointerY - 0.5f,
+        0.7f);
 }
 
 //==============================================================
@@ -975,8 +1042,6 @@ void AmpSimAudioProcessorEditor::paint(
 
     //============================================================
     // METALLIC OUTER BEZEL
-    //
-    // 11.5 x 11.5 px
     //============================================================
 
     g.setColour(
@@ -1000,7 +1065,7 @@ void AmpSimAudioProcessorEditor::paint(
             190,
             190,
             190)
-            .withAlpha(0.85f));
+        .withAlpha(0.85f));
 
     g.drawEllipse(
         inputX - 4.9f,
