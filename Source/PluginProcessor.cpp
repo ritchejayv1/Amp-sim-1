@@ -1,4 +1,4 @@
-#include "PluginProcessor.h"
+q2#include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "BinaryData.h"
 
@@ -464,8 +464,8 @@ void AmpSimAudioProcessor::processBlock(
             gainValue,
             0.0f,
             10.0f,
-            -12.0f,
-            18.0f);
+            -15.0f,
+            6.0f);
 
     inputGain.setGainDecibels(
         inputGainDb);
