@@ -1253,6 +1253,27 @@ void AmpSimAudioProcessorEditor::paint(
         ledRadius * 2.0f,
         ledRadius * 2.0f,
         1.2f);
+
+    //============================================================
+    // COPYRIGHT FOOTER
+    //============================================================
+
+    g.setColour(
+        juce::Colours::white.withAlpha(0.55f));
+
+    g.setFont(
+        juce::Font(
+            9.0f,
+            juce::Font::plain));
+
+    g.drawText(
+        "© RG Electronics. All Rights Reserved.",
+        getWidth() - 250,
+        getHeight() - 24,
+        235,
+        16,
+        juce::Justification::right,
+        false);
 }
 
 //==============================================================
